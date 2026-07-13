@@ -11,8 +11,8 @@
 1. 从 Figma 导出目标 Frame 为 PNG（自动处理 4096px 导出上限）
 2. 对齐浏览器视口，并对页面总高度做体检
 3. 通过 Playwright 在运行时把设计图注入为页面叠加层——`opacity: 0.5` 粗看整体错位，`mix-blend-mode: difference` 精查（"越黑越吻合"）
-4. 用区域裁剪（`scripts/crop.mjs`）+ DOM 坐标测量快速定位差异根因
-5. 用 pixelmatch 量化结果（`scripts/pixel-diff.mjs`）——达标标准：mismatch < 2% 且无成片差异色块
+4. 用脚本自动定位的差异区域坐标 + 区域裁剪（`scripts/crop.mjs`）+ DOM 坐标测量快速定位差异根因
+5. 用 pixelmatch 量化结果（`scripts/pixel-diff.mjs`）——自动对齐图片尺寸（Figma 导出缩放、Retina 截图），并按严重程度输出差异区域坐标；达标标准：mismatch < 2% 且无成片差异色块
 6. 自动清理现场；叠加层只存在于运行时，绝不写入源码
 
 技能里还内置了一张高频真实差异原因速查表（Figma 与 CSS 行高默认值差异、`object-cover` 裁切、border 盒模型等），让 agent 优先排查最可能的原因。

@@ -23,7 +23,7 @@ Task Progress:
 
 Use Figma MCP `download_assets` (defaultFormat: png) to export the target Frame, save it to `/tmp/figma-overlay/design.png`, and record the Frame's **logical width/height** (e.g. 1400×4283).
 
-**Key gotcha: Figma caps exports at 4096px on the long edge.** Long pages get proportionally downscaled on export (e.g. 1400 wide becomes 1339). Use `file` or `sips` to confirm the actual pixel size and compute the scale factor `scale = exported width / logical width` — you'll need it in Step 5. The overlay itself is unaffected (CSS stretches it back to logical width).
+**Key gotcha: Figma caps exports at 4096px on the long edge.** Long pages get proportionally downscaled on export (e.g. 1400 wide becomes 1339). Use `file` or `sips` to confirm the actual pixel size. The overlay is unaffected (CSS stretches it back to logical width), and the Step 5 diff script auto-resamples widths, so no manual scaling is needed.
 
 ### Step 2: Align viewport + height sanity check
 
@@ -38,10 +38,11 @@ Ways to make the image accessible to the page, in order of preference:
 1. **Dev server static directory** (recommended): copy design.png to something like `public/__figma_overlay.png`, inject `src="/__figma_overlay.png"`, delete the file when done
 2. **base64 data URL**: fallback when there's no static directory; note very large images may exceed the evaluate argument size limit
 
-Inject with `browser_evaluate` (disabling animations along the way):
+Inject with `browser_evaluate` (waiting for web fonts and disabling animations along the way — fonts still on fallback produce large false text diffs):
 
 ```javascript
-() => {
+async () => {
+  await document.fonts.ready;
   document.getElementById('__figma_overlay__')?.remove();
   const style = document.createElement('style');
   style.textContent = '* { animation: none !important; transition: none !important; }';
@@ -60,9 +61,13 @@ Two modes:
 - `opacity:0.5`: coarse pass for overall misalignment
 - `opacity:1; mix-blend-mode:difference`: fine pass. **The blacker, the closer the match**; bright outlines = position/size offsets; bright solid blocks = color mismatch; "ghosted" text = line-height/font-size mismatch
 
+If the page has dynamic content (carousels, videos, live dates, random data), freeze it in the same evaluate call (pause videos, pin the carousel to the frame shown in the design, stub dates) — otherwise it shows up as constant noise in every pass.
+
 ### Step 4: Locate and fix diffs
 
-Full-page screenshots are too large to inspect details, so combine two techniques:
+Full-page screenshots are too large to inspect details, so don't eyeball them — combine these techniques:
+
+**Machine-located regions** (preferred): run the Step 5 pixel diff early — it prints the top mismatch regions as `x/y/w/h` bounding boxes sorted by severity. Crop those exact coordinates instead of scanning the image by eye; this also catches small-but-severe diffs that a <2% total score would hide.
 
 **Region cropping**: use this skill's `scripts/crop.mjs` to crop suspicious regions out of the difference screenshot for a zoomed-in look:
 
@@ -85,15 +90,16 @@ Note: Playwright MCP's `browser_take_screenshot` with a filename writes to the *
 
 ### Step 5: Quantify with pixel diff
 
-Refresh to remove the overlay, take a full-page screenshot, **resample the screenshot to the exported image's width first** (the scale factor from Step 1), then compare:
+Refresh to remove the overlay, take a full-page screenshot, then compare:
 
 ```bash
 cd /tmp/figma-overlay && npm init -y && npm i pixelmatch pngjs   # first time only
-sips --resampleWidth 1339 page.png --out page-resized.png        # 1339 = exported image's actual width
-node <path-to-this-skill>/scripts/pixel-diff.mjs design.png page-resized.png diff.png
+node <path-to-this-skill>/scripts/pixel-diff.mjs design.png page.png diff.png
 ```
 
-Pass criteria: mismatch < 2% and no large highlighted blocks in the diff image. Scattered highlights from text anti-aliasing and photo edges are acceptable noise.
+The script auto-resamples the wider image to the narrower width, so Figma's export downscale and retina screenshots (2x device pixel ratio on macOS makes screenshots twice the viewport size) are both handled — no manual `sips` step. It reports the overall mismatch percentage plus the top mismatch regions with `x/y/w/h` coordinates for direct cropping.
+
+Pass criteria: mismatch < 2%, and every reported region is explainable as text anti-aliasing or photo-edge noise (low density, no large solid blocks).
 
 ### Step 6: Cleanup
 

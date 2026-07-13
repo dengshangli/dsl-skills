@@ -11,8 +11,8 @@ An [agent skill](https://agentskills.io) for verifying how faithfully a web page
 1. Exports the target Frame from Figma as PNG (handling the 4096px export cap)
 2. Aligns the browser viewport and sanity-checks the page height
 3. Injects the design image as a runtime overlay via Playwright — `opacity: 0.5` for coarse misalignment, `mix-blend-mode: difference` for fine inspection ("the blacker, the closer")
-4. Pinpoints root causes with region cropping (`scripts/crop.mjs`) and DOM coordinate measurement
-5. Quantifies the result with pixelmatch (`scripts/pixel-diff.mjs`) — pass = mismatch < 2% with no large diff blocks
+4. Pinpoints root causes with machine-located diff regions, region cropping (`scripts/crop.mjs`), and DOM coordinate measurement
+5. Quantifies the result with pixelmatch (`scripts/pixel-diff.mjs`) — auto-aligns image sizes (Figma export downscale, retina screenshots) and reports the top mismatch regions with coordinates; pass = mismatch < 2% with no large diff blocks
 6. Cleans up after itself; the overlay is runtime-only and never enters your source code
 
 It also ships a table of the most frequent real-world causes of visual diffs (Figma vs CSS line-height defaults, `object-cover` cropping, border box-sizing, etc.) so the agent checks likely culprits first.
