@@ -12,8 +12,9 @@
 2. 对齐浏览器视口，并对页面总高度做体检
 3. 通过 Playwright 在运行时把设计图注入为页面叠加层——`opacity: 0.5` 粗看整体错位，`mix-blend-mode: difference` 精查（"越黑越吻合"）
 4. 用脚本自动定位的差异区域坐标 + 区域裁剪（`scripts/crop.mjs`）+ DOM 坐标测量快速定位差异根因
-5. 用 pixelmatch 量化结果（`scripts/pixel-diff.mjs`）——自动对齐图片尺寸（Figma 导出缩放、Retina 截图），并按严重程度输出差异区域坐标；达标标准：mismatch < 2% 且无成片差异色块
-6. 自动清理现场；叠加层只存在于运行时，绝不写入源码
+5. 用数字而非像素校验颜色——`getComputedStyle` 与 Figma 变量值直接比对，配合 ΔE 采样脚本（`scripts/color-sample.mjs`）覆盖渐变/图片场景，以及亮度放大脚本（`scripts/amplify.mjs`）让 difference 模式里"近黑不可见"的小色偏现形
+6. 用 pixelmatch 量化结果（`scripts/pixel-diff.mjs`）——自动对齐图片尺寸（Figma 导出缩放、Retina 截图），并按严重程度输出差异区域坐标；达标标准：mismatch < 2% 且无成片差异色块
+7. 自动清理现场；叠加层只存在于运行时，绝不写入源码
 
 技能里还内置了一张高频真实差异原因速查表（Figma 与 CSS 行高默认值差异、`object-cover` 裁切、border 盒模型等），让 agent 优先排查最可能的原因。
 
@@ -44,7 +45,7 @@ npx skills add dengshangli/figma-overlay-check -g
 - "对照这个 Figma frame 做一次 pixel-perfect 走查"
 - "把设计稿叠到页面上，把差异修掉"
 
-agent 会按照 [SKILL.md](./SKILL.md) 中的 6 步流程执行。
+agent 会按照 [SKILL.md](./SKILL.md) 中的 7 步流程执行。
 
 ## 许可协议
 

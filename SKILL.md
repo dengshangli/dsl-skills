@@ -15,8 +15,9 @@ Task Progress:
 - [ ] Step 2: Align viewport + height sanity check
 - [ ] Step 3: Inject overlay (opacity for coarse pass → difference for fine pass)
 - [ ] Step 4: Region cropping + DOM measurement to locate and fix diffs
-- [ ] Step 5: Quantify with pixel diff
-- [ ] Step 6: Cleanup
+- [ ] Step 5: Color check (computed styles vs Figma values, ΔE sampling)
+- [ ] Step 6: Quantify with pixel diff
+- [ ] Step 7: Cleanup
 ```
 
 ### Step 1: Export the design
@@ -61,13 +62,19 @@ Two modes:
 - `opacity:0.5`: coarse pass for overall misalignment
 - `opacity:1; mix-blend-mode:difference`: fine pass. **The blacker, the closer the match**; bright outlines = position/size offsets; bright solid blocks = color mismatch; "ghosted" text = line-height/font-size mismatch
 
+**Difference mode is blind to subtle color drift**: `#333333` vs `#3A3A3A` subtracts to `#070707` — visually black, so it reads as a match. Don't trust an "all black" difference screenshot for colors; run the Step 5 color check regardless, and/or brighten the screenshot with `scripts/amplify.mjs` (multiplies pixel values, default ×8) to make near-black residue visible:
+
+```bash
+node <path-to-this-skill>/scripts/amplify.mjs difference-shot.png amplified.png
+```
+
 If the page has dynamic content (carousels, videos, live dates, random data), freeze it in the same evaluate call (pause videos, pin the carousel to the frame shown in the design, stub dates) — otherwise it shows up as constant noise in every pass.
 
 ### Step 4: Locate and fix diffs
 
 Full-page screenshots are too large to inspect details, so don't eyeball them — combine these techniques:
 
-**Machine-located regions** (preferred): run the Step 5 pixel diff early — it prints the top mismatch regions as `x/y/w/h` bounding boxes sorted by severity. Crop those exact coordinates instead of scanning the image by eye; this also catches small-but-severe diffs that a <2% total score would hide.
+**Machine-located regions** (preferred): run the Step 6 pixel diff early — it prints the top mismatch regions as `x/y/w/h` bounding boxes sorted by severity. Crop those exact coordinates instead of scanning the image by eye; this also catches small-but-severe diffs that a <2% total score would hide.
 
 **Region cropping**: use this skill's `scripts/crop.mjs` to crop suspicious regions out of the difference screenshot for a zoomed-in look:
 
@@ -88,7 +95,32 @@ After each fix, refresh the page, re-inject the overlay, and re-check. Loop unti
 
 Note: Playwright MCP's `browser_take_screenshot` with a filename writes to the **user home directory**, not the project directory.
 
-### Step 5: Quantify with pixel diff
+### Step 5: Color check
+
+Pixel diffing alone misses color drift (see Step 3), so verify colors by **comparing numbers, not pixels**:
+
+**Computed styles vs Figma values** (primary): pull the exact colors from Figma via `get_variable_defs` / `get_design_context`, then read what the page actually renders:
+
+```javascript
+() => [...document.querySelectorAll('button, .card, h1, h2, p, a')].map((e) => {
+  const s = getComputedStyle(e);
+  return { sel: e.tagName + '.' + e.className, color: s.color, bg: s.backgroundColor, border: s.borderColor };
+})
+```
+
+Compare the rgb values against the Figma hex values directly — a 1-unit delta is caught, and the report doubles as the fix (it tells you exactly which hex to change to). Cover text color, background, border, and don't forget states rendered by default (e.g. a primary button).
+
+**ΔE pixel sampling** (for gradients, shadows, images — anywhere computed styles can't tell the story): sample the same coordinates in both PNGs with `scripts/color-sample.mjs`; it averages a small patch, prints both hex values plus the perceptual difference ΔE:
+
+```bash
+node <path-to-this-skill>/scripts/color-sample.mjs design.png page.png 700,120 200,800 --size=8
+```
+
+Coordinates are in the design image's pixel space (the page screenshot is auto-scaled). Rule of thumb: ΔE < 1 identical, 1–2.3 barely perceptible (usually acceptable), > 2.3 a real mismatch to fix. Sample the center of solid-color areas, not edges (anti-aliasing pollutes the patch).
+
+**Color-profile gotcha**: on macOS a headed Chromium may screenshot in Display P3 while Figma exports sRGB, producing a small *global* color shift that looks like every color is slightly off. If ΔE reports uniform small drift everywhere, relaunch the browser with `--force-color-profile=srgb` before blaming the CSS.
+
+### Step 6: Quantify with pixel diff
 
 Refresh to remove the overlay, take a full-page screenshot, then compare:
 
@@ -99,9 +131,9 @@ node <path-to-this-skill>/scripts/pixel-diff.mjs design.png page.png diff.png
 
 The script auto-resamples the wider image to the narrower width, so Figma's export downscale and retina screenshots (2x device pixel ratio on macOS makes screenshots twice the viewport size) are both handled — no manual `sips` step. It reports the overall mismatch percentage plus the top mismatch regions with `x/y/w/h` coordinates for direct cropping.
 
-Pass criteria: mismatch < 2%, and every reported region is explainable as text anti-aliasing or photo-edge noise (low density, no large solid blocks).
+Pass criteria: mismatch < 2%, every reported region is explainable as text anti-aliasing or photo-edge noise (low density, no large solid blocks), **and the Step 5 color check passed** — the pixel score alone can be green while colors are uniformly off.
 
-### Step 6: Cleanup
+### Step 7: Cleanup
 
 1. Delete the temporary overlay image from `public/`, refresh and confirm the overlay is gone
 2. Confirm no overlay-related code exists in source (this skill never writes source code — if any exists, that's a violation)
@@ -116,6 +148,8 @@ Pass criteria: mismatch < 2%, and every reported region is explainable as text a
 | Buttons/cards a few px too tall | CSS `border` takes up box size, Figma strokes don't | Reduce padding accordingly when adding borders |
 | A whole section shifted by tens of px | Extra/missing padding or gap, or a 0-width decorative node in Figma (inset overflow) mistaken for a spacer | Use DOM measurement to check numbers against Figma coordinates one by one |
 | Image assets themselves don't match | Local asset is an old export or cropped from a different source | Re-export from Figma; if instance children can't be exported by id, export the parent instance at 2x and crop programmatically |
+| Everything "passes" but colors feel off | Difference blend and pixelmatch both tolerate small color deltas (near-black residue, sub-threshold) | Run the Step 5 numeric color check; amplify.mjs on the difference screenshot to see residue |
+| Every color off by a tiny uniform amount | Screenshot taken in Display P3 while Figma exports sRGB | Relaunch browser with `--force-color-profile=srgb` |
 
 ## Rules
 

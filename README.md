@@ -12,8 +12,9 @@ An [agent skill](https://agentskills.io) for verifying how faithfully a web page
 2. Aligns the browser viewport and sanity-checks the page height
 3. Injects the design image as a runtime overlay via Playwright — `opacity: 0.5` for coarse misalignment, `mix-blend-mode: difference` for fine inspection ("the blacker, the closer")
 4. Pinpoints root causes with machine-located diff regions, region cropping (`scripts/crop.mjs`), and DOM coordinate measurement
-5. Quantifies the result with pixelmatch (`scripts/pixel-diff.mjs`) — auto-aligns image sizes (Figma export downscale, retina screenshots) and reports the top mismatch regions with coordinates; pass = mismatch < 2% with no large diff blocks
-6. Cleans up after itself; the overlay is runtime-only and never enters your source code
+5. Verifies colors by numbers, not pixels — `getComputedStyle` vs Figma variable values, plus ΔE patch sampling (`scripts/color-sample.mjs`) for gradients/images and a brightness amplifier (`scripts/amplify.mjs`) that exposes near-black residue in difference-mode screenshots
+6. Quantifies the result with pixelmatch (`scripts/pixel-diff.mjs`) — auto-aligns image sizes (Figma export downscale, retina screenshots) and reports the top mismatch regions with coordinates; pass = mismatch < 2% with no large diff blocks
+7. Cleans up after itself; the overlay is runtime-only and never enters your source code
 
 It also ships a table of the most frequent real-world causes of visual diffs (Figma vs CSS line-height defaults, `object-cover` cropping, border box-sizing, etc.) so the agent checks likely culprits first.
 
@@ -44,7 +45,7 @@ Ask your agent things like:
 - "Do a pixel-perfect walkthrough against this Figma frame"
 - "Overlay the mockup on the page and fix the differences"
 
-The agent will follow the 6-step workflow in [SKILL.md](./SKILL.md).
+The agent will follow the 7-step workflow in [SKILL.md](./SKILL.md).
 
 ## License
 
