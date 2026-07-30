@@ -1,0 +1,25 @@
+{
+  "name": "jingdouyun-email-template-replacement",
+  "displayName": "Jingdouyun Email Template Replacement",
+  "version": "1.0.0",
+  "description": "Replace only the content field of matching Jingdouyun CRM email templates while preserving all other fields.",
+  "author": {
+    "name": "dengshangli"
+  },
+  "publisher": "dengshangli",
+  "homepage": "https://github.com/dengshangli/skills/tree/master/jingdouyun-email-template-replacement",
+  "repository": "https://github.com/dengshangli/skills",
+  "license": "MIT",
+  "keywords": [
+    "email",
+    "crm",
+    "template",
+    "content-replacement"
+  ],
+  "category": "productivity",
+  "tags": [
+    "email",
+    "crm",
+    "browser-automation"
+  ]
+}

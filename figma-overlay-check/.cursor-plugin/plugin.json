@@ -1,0 +1,25 @@
+{
+  "name": "figma-overlay-check",
+  "displayName": "Figma Overlay Check",
+  "version": "1.0.0",
+  "description": "Compare a running web UI with Figma designs using runtime overlays and pixel-diff visual QA.",
+  "author": {
+    "name": "dengshangli"
+  },
+  "publisher": "dengshangli",
+  "homepage": "https://github.com/dengshangli/skills/tree/master/figma-overlay-check",
+  "repository": "https://github.com/dengshangli/skills",
+  "license": "MIT",
+  "keywords": [
+    "figma",
+    "visual-qa",
+    "overlay",
+    "pixel-diff"
+  ],
+  "category": "design",
+  "tags": [
+    "figma",
+    "frontend",
+    "testing"
+  ]
+}
