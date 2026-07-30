@@ -1,6 +1,7 @@
 ---
 name: figma-overlay-check
 description: Use when verifying UI fidelity against a Figma design — pixel-perfect walkthroughs, checking whether a page matches the mockup, or when the user mentions "overlay comparison", "design diff", "visual QA", "还原度", "叠图比对". For web projects that can run locally (requires Figma MCP and Playwright MCP).
+license: MIT
 ---
 
 # Figma Overlay Fidelity Check

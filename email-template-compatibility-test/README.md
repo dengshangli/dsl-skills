@@ -59,4 +59,4 @@ See [SKILL.md](./SKILL.md) for the browser selection rule, upload sequence, resu
 
 ## License
 
-No standalone license is currently provided for this skill. Public access does not by itself grant permission to copy, modify, or redistribute it.
+This Skill is licensed under the repository-wide [MIT License](../LICENSE).

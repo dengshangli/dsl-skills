@@ -62,4 +62,4 @@ npx skills add dengshangli/skills --skill crm-email-manual-send --global
 
 ## 许可证
 
-此 Skill 目前没有独立许可证。公开访问本身不代表授予复制、修改或再分发许可。
+此 Skill 采用仓库级 [MIT License](../LICENSE)。

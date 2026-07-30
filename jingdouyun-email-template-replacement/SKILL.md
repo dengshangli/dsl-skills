@@ -1,6 +1,7 @@
 ---
 name: jingdouyun-email-template-replacement
 description: Replace only the “模板内容” field of existing 筋斗云 CRM/CMS email templates with matching local HTML files through the logged-in Chrome browser. Use when the user asks to upload, synchronize, batch-update, or replace email template content on cp-admin-test.wukongacademy.com (or the equivalent 筋斗云 template management page) while preserving every other field.
+license: MIT
 ---
 
 # 筋斗云邮件模板替换

@@ -64,4 +64,4 @@ See [SKILL.md](./SKILL.md) for the complete seven-step workflow, pass criteria, 
 
 ## License
 
-[MIT](./LICENSE)
+This Skill is licensed under the [MIT License](./LICENSE).

@@ -39,4 +39,4 @@ npx skills add dengshangli/skills --all
 
 ## 许可证
 
-仓库目前没有统一的仓库级许可证。`figma-overlay-check` 包含独立的 [MIT License](./figma-overlay-check/LICENSE)；除非目录中另有说明，其他 Skill 目前未授予许可证。
+本仓库采用 [MIT License](./LICENSE)。

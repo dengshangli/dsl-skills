@@ -1,6 +1,7 @@
 ---
 name: crm-email-manual-send
 description: Manually send CRM template emails by matching local .html filenames to templates in a logged-in CRM lead page, selecting each exact template, clicking confirm, and verifying the follow-up record. Use when the user asks to send one or all email templates from the current directory through the CRM UI, retry failed manual sends, or report which local templates are unavailable in CRM.
+license: MIT
 ---
 
 # CRM 邮件手动发送

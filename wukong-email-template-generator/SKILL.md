@@ -1,6 +1,7 @@
 ---
 name: wukong-email-template-generator
 description: Use when creating or designing a WuKong/悟空 HTML email, EDM, campaign email, newsletter, notification email, or CRM email that must use the standard WuKong email shell.
+license: MIT
 ---
 
 # 悟空邮件模板生成器

@@ -64,4 +64,4 @@ npx skills add dengshangli/skills --skill figma-overlay-check --global
 
 ## 许可证
 
-[MIT](./LICENSE)
+此 Skill 采用 [MIT License](./LICENSE)。

@@ -39,4 +39,4 @@ The repository format is portable, but runtime compatibility depends on whether 
 
 ## License
 
-The repository does not currently have a single repository-wide license. `figma-overlay-check` includes its own [MIT License](./figma-overlay-check/LICENSE); no license is currently granted for the other skills unless stated in their directories.
+This repository is licensed under the [MIT License](./LICENSE).

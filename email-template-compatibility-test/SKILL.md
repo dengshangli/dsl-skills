@@ -1,6 +1,7 @@
 ---
 name: email-template-compatibility-test
 description: Use when a user wants to batch-send local HTML email templates through a web mail-testing form to multiple test inboxes, use filenames as subjects, verify accepted sends, or compare rendering compatibility across email providers.
+license: MIT
 ---
 
 # 邮件模板兼容性测试
