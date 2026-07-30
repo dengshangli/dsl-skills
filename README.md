@@ -1,6 +1,6 @@
-# Codex 邮件工作流 Skills
+# Codex 工作流 Skills
 
-这个仓库收录了一组面向 Codex 的邮件工作流 Skill，覆盖悟空 HTML 邮件生成、邮件客户端兼容性测试、筋斗云后台模板替换，以及 CRM 模板邮件手动发送。
+这个仓库收录了一组面向 Codex 的实用工作流 Skill，覆盖 Figma 设计还原度检查、悟空 HTML 邮件生成、邮件客户端兼容性测试、筋斗云后台模板替换，以及 CRM 模板邮件手动发送。
 
 每个 Skill 都放在独立目录中，完整规则请查看对应目录下的 `SKILL.md`。
 
@@ -8,12 +8,29 @@
 
 | Skill | 主要用途 | 典型场景 | 关键依赖 |
 |---|---|---|---|
+| [`figma-overlay-check`](figma-overlay-check/SKILL.md) | 将实现页面截图与 Figma 设计稿进行叠加和像素差异分析 | 定位布局、尺寸、位置和颜色偏差 | Figma MCP、Playwright MCP、Node.js 图像处理脚本 |
 | [`wukong-email-template-generator`](wukong-email-template-generator/SKILL.md) | 使用固定的悟空邮件外壳生成 HTML 邮件 | EDM、活动邮件、通知邮件、CRM 邮件 | Python 3、仓库自带生成脚本 |
 | [`email-template-compatibility-test`](email-template-compatibility-test/SKILL.md) | 将本地 HTML 模板批量发送到测试邮箱并记录服务器接受结果 | Gmail、Outlook 等邮箱的送达与渲染测试 | Codex 应用内置浏览器 |
 | [`jingdouyun-email-template-replacement`](jingdouyun-email-template-replacement/SKILL.md) | 用本地 HTML 精确替换筋斗云现有模板的“模板内容” | 批量同步或更新后台邮件模板 | 已登录目标系统的 Chrome、Chrome 控制 Skill |
 | [`crm-email-manual-send`](crm-email-manual-send/SKILL.md) | 将本地文件名映射到 CRM 模板，逐封发送并核验跟进记录 | CRM 模板邮件发送、失败重试、缺失模板排查 | 已登录 CRM 的 Chrome、Chrome 控制 Skill |
 
 ## 各 Skill 介绍
+
+### `figma-overlay-check`
+
+**用途：** 通过半透明叠加、像素差异和颜色采样，对比实现页面截图与 Figma 设计稿，定位视觉偏差。
+
+**适用场景：**
+
+- 验收前端页面与 Figma 设计稿的还原度。
+- 排查布局、尺寸、间距、位置和颜色不一致。
+- 在修改 UI 后使用相同截图条件复核偏差是否收敛。
+
+**关键要求：** 需要可在本地运行的网页项目、同视口条件下的设计稿与实现页面，以及 Figma MCP、Playwright MCP 和 Node.js。应按 Skill 规定的顺序使用视口对齐、运行时叠图、DOM 测量、裁剪、颜色采样和像素差异脚本，并以测量结果定位问题；叠图代码不得写入项目源码。
+
+**调用示例：**
+
+> 对比这个 Figma Frame 和当前页面，找出主要视觉偏差并给出修正建议。
 
 ### `wukong-email-template-generator`
 
@@ -136,6 +153,7 @@ fi
 
 安装其他 Skill 时，把命令中的 `crm-email-manual-send` 替换成下面任一目录名：
 
+- `figma-overlay-check`
 - `wukong-email-template-generator`
 - `email-template-compatibility-test`
 - `jingdouyun-email-template-replacement`
