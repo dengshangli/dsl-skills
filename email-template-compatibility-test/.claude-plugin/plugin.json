@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "email-template-compatibility-test",
+  "displayName": "Email Template Compatibility Test",
+  "version": "1.0.0",
+  "description": "Batch-send local HTML email templates to authorized test inboxes and audit acceptance and rendering results.",
+  "author": {
+    "name": "dengshangli",
+    "url": "https://github.com/dengshangli"
+  },
+  "homepage": "https://github.com/dengshangli/skills/tree/master/email-template-compatibility-test",
+  "repository": "https://github.com/dengshangli/skills",
+  "license": "MIT",
+  "keywords": [
+    "email",
+    "compatibility",
+    "rendering",
+    "testing"
+  ]
+}

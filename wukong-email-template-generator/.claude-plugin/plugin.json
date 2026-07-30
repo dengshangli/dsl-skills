@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "wukong-email-template-generator",
+  "displayName": "WuKong Email Template Generator",
+  "version": "1.0.0",
+  "description": "Generate WuKong-branded HTML email templates through the repository's validated standard shell.",
+  "author": {
+    "name": "dengshangli",
+    "url": "https://github.com/dengshangli"
+  },
+  "homepage": "https://github.com/dengshangli/skills/tree/master/wukong-email-template-generator",
+  "repository": "https://github.com/dengshangli/skills",
+  "license": "MIT",
+  "keywords": [
+    "email",
+    "html-email",
+    "edm",
+    "template-generator"
+  ]
+}
