@@ -611,4 +611,3 @@ For every non-live entry, include the exact next event needed. For every live en
 ### Step 4: Report sensitive-data checks
 
 State that committed files and publishing artifacts were checked for tokens, cookies, device codes, and local credential material. Do not echo any secret values found during authentication.
-
