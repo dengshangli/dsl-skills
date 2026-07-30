@@ -1,0 +1,4 @@
+interface:
+  display_name: "悟空邮件模板生成器"
+  short_description: "基于悟空固定框架设计邮件正文并生成新 HTML 文件"
+  default_prompt: "使用 $wukong-email-template-generator 设计邮件；必须执行 generate_email.py，只生成一个基于内置悟空模板的完整 HTML 文件，不生成正文 HTML 文件。"
