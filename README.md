@@ -1,8 +1,8 @@
-# Codex 工作流 Skills
+# Agent 工作流 Skills
 
-这个仓库收录了一组面向 Codex 的实用工作流 Skill，覆盖 Figma 设计还原度检查、悟空 HTML 邮件生成、邮件客户端兼容性测试、筋斗云后台模板替换，以及 CRM 模板邮件手动发送。
+这个仓库收录了一组面向智能 Agent 的实用工作流 Skill，覆盖 Figma 设计还原度检查、悟空 HTML 邮件生成、邮件客户端兼容性测试、筋斗云后台模板替换，以及 CRM 模板邮件手动发送。
 
-每个 Skill 都放在独立目录中，完整规则请查看对应目录下的 `SKILL.md`。
+仓库采用以 `SKILL.md` 为核心的 Agent Skills 结构，可供支持 Agent Skills 规范或兼容 Skill 目录的智能编码工具与 Agent 使用。每个 Skill 都放在独立目录中，完整规则请查看对应目录下的 `SKILL.md`。
 
 ## Skill 总览
 
@@ -13,6 +13,20 @@
 | [`email-template-compatibility-test`](email-template-compatibility-test/SKILL.md) | 将本地 HTML 模板批量发送到测试邮箱并记录服务器接受结果 | Gmail、Outlook 等邮箱的送达与渲染测试 | Codex 应用内置浏览器 |
 | [`jingdouyun-email-template-replacement`](jingdouyun-email-template-replacement/SKILL.md) | 用本地 HTML 精确替换筋斗云现有模板的“模板内容” | 批量同步或更新后台邮件模板 | 已登录目标系统的 Chrome、Chrome 控制 Skill |
 | [`crm-email-manual-send`](crm-email-manual-send/SKILL.md) | 将本地文件名映射到 CRM 模板，逐封发送并核验跟进记录 | CRM 模板邮件发送、失败重试、缺失模板排查 | 已登录 CRM 的 Chrome、Chrome 控制 Skill |
+
+## 兼容性说明
+
+仓库的文件结构是通用的，但每个 Skill 能否直接运行，取决于宿主 Agent 是否提供所需的 MCP、浏览器控制、本地命令和登录环境。
+
+| Skill | 当前运行条件 |
+|---|---|
+| `figma-overlay-check` | 需要 Figma MCP、Playwright MCP 和 Node.js |
+| `wukong-email-template-generator` | 需要 Python 3；当前命令包含作者本机绝对路径，其他用户需要按实际安装位置调整 |
+| `email-template-compatibility-test` | 当前要求 Codex 应用内置浏览器 |
+| `jingdouyun-email-template-replacement` | 当前要求 `chrome:control-chrome` Skill 和已登录目标系统的 Chrome |
+| `crm-email-manual-send` | 当前要求 `chrome:control-chrome` Skill 和已登录目标 CRM 的 Chrome |
+
+本次文档调整不会改变这些依赖。若宿主工具缺少某项能力，应先安装对应插件、MCP 或浏览器控制 Skill，或者选择具备等价能力的运行环境。
 
 ## 各 Skill 介绍
 
@@ -99,23 +113,59 @@
 
 ## 安装
 
-默认安装目录为：
+### 方式一：使用 Skills CLI
 
-```text
-${CODEX_HOME:-$HOME/.codex}/skills
+推荐使用开源的 [`skills`](https://github.com/vercel-labs/skills) CLI。它可以识别多种 Agent 工具，并让你选择项目级或用户级安装。
+
+当前 CLI 要求 Node.js `>=22.20.0`，请先检查版本：
+
+```bash
+node --version
 ```
 
-如果没有设置 `CODEX_HOME`，实际目录通常是 `~/.codex/skills`。
+交互式选择仓库中的 Skill 和目标 Agent：
 
-### 方式一：整库安装
+```bash
+npx skills add dengshangli/skills
+```
 
-克隆仓库，然后把所有包含顶层 `SKILL.md` 的 Skill 目录复制到 Codex：
+安装指定 Skill：
+
+```bash
+npx skills add dengshangli/skills --skill figma-overlay-check
+```
+
+安装仓库中的全部 Skill 到所有检测到的 Agent：
+
+```bash
+npx skills add dengshangli/skills --all
+```
+
+安装到用户级目录：
+
+```bash
+npx skills add dengshangli/skills --skill figma-overlay-check --global
+```
+
+也可以用 `--agent` 明确指定宿主工具：
+
+```bash
+npx skills add dengshangli/skills --skill figma-overlay-check --agent codex
+npx skills add dengshangli/skills --skill figma-overlay-check --agent claude-code
+npx skills add dengshangli/skills --skill figma-overlay-check --agent cursor
+```
+
+CLI 支持的 Agent 名称和安装位置可能随版本更新，请以 `skills` CLI 的帮助信息为准。
+
+### 方式二：手动整库安装
+
+如果宿主工具尚未被 CLI 支持，也可以克隆仓库并手动复制。先根据宿主工具文档设置其 Skills 目录：
 
 ```bash
 git clone https://github.com/dengshangli/skills.git
 cd skills
 
-SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
+SKILLS_DIR="/path/to/your-agent/skills"
 mkdir -p "$SKILLS_DIR"
 
 for skill in */SKILL.md; do
@@ -128,30 +178,38 @@ for skill in */SKILL.md; do
 done
 ```
 
-该命令只安装 Skill 目录，不会复制仓库的 `.git`、`docs` 或 README，也不会覆盖已有的同名目录。
+该命令只安装包含顶层 `SKILL.md` 的 Skill 目录，不会复制仓库的 `.git`、`docs` 或根 README，也不会覆盖已有的同名目录。
 
-### 方式二：安装单个 Skill
+Codex 的用户级安装目录示例为：
 
-下面以安装 `crm-email-manual-send` 为例，使用 Git sparse-checkout 只获取所需目录：
+```bash
+SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
+```
+
+其他宿主工具应使用各自文档规定的项目级或用户级目录。
+
+### 方式三：手动安装单个 Skill
+
+下面以 `figma-overlay-check` 为例，使用 Git sparse-checkout 只获取所需目录：
 
 ```bash
 git clone --filter=blob:none --no-checkout https://github.com/dengshangli/skills.git skills-single
 cd skills-single
 git sparse-checkout init --cone
-git sparse-checkout set crm-email-manual-send
+git sparse-checkout set figma-overlay-check
 git checkout master
 
-SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
+SKILLS_DIR="/path/to/your-agent/skills"
 mkdir -p "$SKILLS_DIR"
 
-if [ -e "$SKILLS_DIR/crm-email-manual-send" ]; then
-  echo "目标目录已存在，未覆盖：$SKILLS_DIR/crm-email-manual-send"
+if [ -e "$SKILLS_DIR/figma-overlay-check" ]; then
+  echo "目标目录已存在，未覆盖：$SKILLS_DIR/figma-overlay-check"
 else
-  cp -R crm-email-manual-send "$SKILLS_DIR/"
+  cp -R figma-overlay-check "$SKILLS_DIR/"
 fi
 ```
 
-安装其他 Skill 时，把命令中的 `crm-email-manual-send` 替换成下面任一目录名：
+安装其他 Skill 时，把命令中的 `figma-overlay-check` 替换成下面任一目录名：
 
 - `figma-overlay-check`
 - `wukong-email-template-generator`
@@ -161,37 +219,55 @@ fi
 
 ## 更新
 
-进入之前克隆的仓库目录，获取最新版本：
+使用 Skills CLI 安装时，可以运行：
+
+```bash
+npx skills update
+```
+
+手动安装时，进入之前克隆的仓库目录获取最新版本：
 
 ```bash
 git pull
 ```
 
-查看更新内容后，再把需要更新的 Skill 目录复制到 Codex 安装目录。由于安装命令默认不覆盖同名目录，请先备份本地自定义内容，再替换旧版本。
+查看更新内容后，再把需要更新的 Skill 目录复制到宿主工具的 Skills 目录。由于示例命令默认不覆盖同名目录，请先备份本地自定义内容，再替换旧版本。
 
 ## 验证安装
 
-运行下面的命令查看已经安装的 Skill：
+使用 Skills CLI 查看已安装的 Skill：
 
 ```bash
-find "${CODEX_HOME:-$HOME/.codex}/skills" -maxdepth 2 -name SKILL.md -print
+npx skills list
 ```
 
-安装或更新后，建议重新启动 Codex 或新建会话，让 Codex 重新发现 Skill。
+手动安装时，在设置好 `SKILLS_DIR` 后检查：
+
+```bash
+find "$SKILLS_DIR" -maxdepth 2 -name SKILL.md -print
+```
+
+安装或更新后，建议重新启动宿主工具或新建会话，让 Agent 重新发现 Skill。
 
 ## 卸载
 
-确认目标目录中没有需要保留的自定义修改后，删除对应目录：
+使用 Skills CLI 卸载：
 
 ```bash
-rm -r "${CODEX_HOME:-$HOME/.codex}/skills/<skill-name>"
+npx skills remove figma-overlay-check
 ```
 
-请将 `<skill-name>` 替换为准确的 Skill 目录名，并在执行前再次核对路径。
+手动安装时，确认目标目录中没有需要保留的自定义修改后，再删除对应目录：
+
+```bash
+rm -r "$SKILLS_DIR/<skill-name>"
+```
+
+请先把 `SKILLS_DIR` 设置为宿主工具准确的 Skills 目录，将 `<skill-name>` 替换为 Skill 目录名，并在执行前再次核对路径。
 
 ## 使用说明与安全提示
 
-- 安装完成后，可以在请求中直接写出 Skill 名称，也可以用自然语言描述任务，让 Codex 根据适用场景选择 Skill。
+- 安装完成后，可以在请求中直接写出 Skill 名称，也可以用自然语言描述任务，让 Agent 根据适用场景选择 Skill。
 - 需要网页操作的 Skill 依赖对应的浏览器控制能力，并要求浏览器中已经登录目标系统。
 - 发送邮件、替换后台模板或提交表单属于会改变外部状态的操作，必须由用户明确授权。
 - 不要通过 Cookie、Local Storage、密码或其他会话数据绕过正常登录和页面操作。
