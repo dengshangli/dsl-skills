@@ -2,50 +2,65 @@
 
 English | [中文](./README.zh-CN.md)
 
-An [agent skill](https://agentskills.io) for verifying how faithfully a web page reproduces its Figma design — overlay comparison, DOM-vs-Figma coordinate measurement, and quantified pixel diffing, all without touching your project's source code.
+## Overview
 
-[![skills.sh](https://skills.sh/b/dengshangli/figma-overlay-check)](https://skills.sh/dengshangli/figma-overlay-check)
+An Agent Skill for checking how faithfully a locally running web page reproduces a Figma design. It combines runtime overlay comparison, DOM-to-Figma coordinate measurement, numeric color checks, and quantified pixel diffing without adding overlay code to the project.
 
 ## What it does
 
-1. Exports the target Frame from Figma as PNG (handling the 4096px export cap)
-2. Aligns the browser viewport and sanity-checks the page height
-3. Injects the design image as a runtime overlay via Playwright — `opacity: 0.5` for coarse misalignment, `mix-blend-mode: difference` for fine inspection ("the blacker, the closer")
-4. Pinpoints root causes with machine-located diff regions, region cropping (`scripts/crop.mjs`), and DOM coordinate measurement
-5. Verifies colors by numbers, not pixels — `getComputedStyle` vs Figma variable values, plus ΔE patch sampling (`scripts/color-sample.mjs`) for gradients/images and a brightness amplifier (`scripts/amplify.mjs`) that exposes near-black residue in difference-mode screenshots
-6. Quantifies the result with pixelmatch (`scripts/pixel-diff.mjs`) — auto-aligns image sizes (Figma export downscale, retina screenshots) and reports the top mismatch regions with coordinates; pass = mismatch < 2% with no large diff blocks
-7. Cleans up after itself; the overlay is runtime-only and never enters your source code
+1. Exports a page-level Figma Frame as a PNG and accounts for Figma's 4096 px export limit.
+2. Aligns the browser viewport and checks the page's total height.
+3. Injects the design as a temporary runtime overlay for coarse and fine comparison.
+4. Locates mismatches with diff regions, image crops, and DOM measurements.
+5. Checks rendered colors against Figma values and supports perceptual ΔE sampling.
+6. Produces a pixel mismatch score and ranked mismatch regions.
+7. Removes temporary images and confirms no overlay code entered the source tree.
 
-It also ships a table of the most frequent real-world causes of visual diffs (Figma vs CSS line-height defaults, `object-cover` cropping, border box-sizing, etc.) so the agent checks likely culprits first.
+## Use cases
+
+- Review a page before design acceptance.
+- Find layout, size, spacing, position, typography, or color differences.
+- Re-check visual fidelity after UI fixes.
+- Replace subjective visual inspection with measurable evidence.
 
 ## Requirements
 
-- A web project that runs locally
-- [Figma MCP](https://developers.figma.com/docs/figma-mcp-server/) (for exporting designs and reading node geometry)
-- [Playwright MCP](https://github.com/microsoft/playwright-mcp) (for driving the browser and injecting overlays)
-- Node.js (scripts use `pixelmatch` + `pngjs`, installed on first use)
+- A web project that runs locally.
+- [Figma MCP](https://developers.figma.com/docs/figma-mcp-server/) for design exports and node geometry.
+- [Playwright MCP](https://github.com/microsoft/playwright-mcp) for browser control and runtime overlay injection.
+- Node.js. The included image scripts use `pixelmatch` and `pngjs`, installed when needed.
+- Design and page screenshots captured under equivalent viewport conditions.
 
 ## Install
 
-```bash
-npx skills add dengshangli/figma-overlay-check
-```
-
-Or install globally (user-level):
+The current `skills` CLI requires Node.js `>=22.20.0`.
 
 ```bash
-npx skills add dengshangli/figma-overlay-check -g
+# Project or interactive installation
+npx skills add dengshangli/skills --skill figma-overlay-check
+
+# User-level installation
+npx skills add dengshangli/skills --skill figma-overlay-check --global
 ```
 
-## Usage
+## Usage examples
 
-Ask your agent things like:
+- "Check how well this page matches the Figma design."
+- "Run a pixel-perfect walkthrough against this Figma Frame."
+- "Overlay the mockup on the page and identify the largest visual differences."
+- "Measure whether the spacing and colors match the design."
 
-- "Check how well this page matches the Figma design"
-- "Do a pixel-perfect walkthrough against this Figma frame"
-- "Overlay the mockup on the page and fix the differences"
+## Important notes
 
-The agent will follow the 7-step workflow in [SKILL.md](./SKILL.md).
+- Compare one page-level Frame at a time, not an entire Figma canvas.
+- Overlay code must be injected at runtime and must never be committed to the project.
+- A low pixel mismatch score does not prove that colors are correct; run the numeric color checks too.
+- Dynamic content, animations, web fonts, viewport size, device pixel ratio, and color profiles can create false differences.
+- The target project may be changed only when the user asks for fixes. A review-only request authorizes inspection, not source edits.
+
+## Full instructions
+
+See [SKILL.md](./SKILL.md) for the complete seven-step workflow, pass criteria, scripts, troubleshooting guidance, and cleanup rules.
 
 ## License
 

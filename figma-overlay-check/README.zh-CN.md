@@ -2,51 +2,66 @@
 
 [English](./README.md) | 中文
 
-一个用于验证网页与 Figma 设计稿还原度的 [agent skill](https://agentskills.io)——叠图比对、DOM 与 Figma 坐标数字核对、量化像素 diff，全程不修改项目源码。
+## 简介
 
-[![skills.sh](https://skills.sh/b/dengshangli/figma-overlay-check)](https://skills.sh/dengshangli/figma-overlay-check)
+一个用于检查本地网页与 Figma 设计稿还原度的 Agent Skill。它结合运行时叠图、DOM 与 Figma 坐标测量、数值颜色检查和量化像素差异，全程不把叠图代码写入项目。
 
-## 功能说明
+## 功能
 
-1. 从 Figma 导出目标 Frame 为 PNG（自动处理 4096px 导出上限）
-2. 对齐浏览器视口，并对页面总高度做体检
-3. 通过 Playwright 在运行时把设计图注入为页面叠加层——`opacity: 0.5` 粗看整体错位，`mix-blend-mode: difference` 精查（"越黑越吻合"）
-4. 用脚本自动定位的差异区域坐标 + 区域裁剪（`scripts/crop.mjs`）+ DOM 坐标测量快速定位差异根因
-5. 用数字而非像素校验颜色——`getComputedStyle` 与 Figma 变量值直接比对，配合 ΔE 采样脚本（`scripts/color-sample.mjs`）覆盖渐变/图片场景，以及亮度放大脚本（`scripts/amplify.mjs`）让 difference 模式里"近黑不可见"的小色偏现形
-6. 用 pixelmatch 量化结果（`scripts/pixel-diff.mjs`）——自动对齐图片尺寸（Figma 导出缩放、Retina 截图），并按严重程度输出差异区域坐标；达标标准：mismatch < 2% 且无成片差异色块
-7. 自动清理现场；叠加层只存在于运行时，绝不写入源码
+1. 将页面级 Figma Frame 导出为 PNG，并处理 Figma 4096 px 导出上限。
+2. 对齐浏览器视口并检查页面总高度。
+3. 在运行时临时注入设计图，用于粗略和精细叠图比对。
+4. 通过差异区域、图片裁剪和 DOM 测量定位偏差。
+5. 将渲染颜色与 Figma 数值对比，并支持感知色差 ΔE 采样。
+6. 输出像素不匹配比例和按严重程度排序的差异区域。
+7. 清理临时图片，并确认项目源码中没有残留叠图代码。
 
-技能里还内置了一张高频真实差异原因速查表（Figma 与 CSS 行高默认值差异、`object-cover` 裁切、border 盒模型等），让 agent 优先排查最可能的原因。
+## 适用场景
+
+- 在设计验收前检查页面还原度。
+- 排查布局、尺寸、间距、位置、字体或颜色偏差。
+- UI 修复后复核视觉差异是否收敛。
+- 用可测量证据代替主观目测。
 
 ## 环境要求
 
-- 可在本地跑起来的网页项目
-- [Figma MCP](https://developers.figma.com/docs/figma-mcp-server/)（导出设计图、读取节点几何信息）
-- [Playwright MCP](https://github.com/microsoft/playwright-mcp)（驱动浏览器、注入叠加层）
-- Node.js（脚本依赖 `pixelmatch` + `pngjs`，首次使用时安装）
+- 可以在本地运行的网页项目。
+- [Figma MCP](https://developers.figma.com/docs/figma-mcp-server/)，用于导出设计稿和读取节点几何信息。
+- [Playwright MCP](https://github.com/microsoft/playwright-mcp)，用于浏览器控制和运行时叠图。
+- Node.js。随 Skill 提供的图片脚本会在需要时使用 `pixelmatch` 和 `pngjs`。
+- 在等效视口条件下获取的设计稿和页面截图。
 
 ## 安装
 
-```bash
-npx skills add dengshangli/figma-overlay-check
-```
-
-或安装到用户全局：
+当前 `skills` CLI 要求 Node.js `>=22.20.0`。
 
 ```bash
-npx skills add dengshangli/figma-overlay-check -g
+# 项目级或交互式安装
+npx skills add dengshangli/skills --skill figma-overlay-check
+
+# 用户级安装
+npx skills add dengshangli/skills --skill figma-overlay-check --global
 ```
 
-## 使用方式
+## 使用示例
 
-直接对你的 agent 说：
+- “检查这个页面和 Figma 设计稿的还原度。”
+- “对照这个 Figma Frame 做一次 pixel-perfect 走查。”
+- “把设计稿叠到页面上，找出最大的视觉偏差。”
+- “测量页面的间距和颜色是否与设计一致。”
 
-- "检查这个页面和 Figma 设计稿的还原度"
-- "对照这个 Figma frame 做一次 pixel-perfect 走查"
-- "把设计稿叠到页面上，把差异修掉"
+## 重要说明
 
-agent 会按照 [SKILL.md](./SKILL.md) 中的 7 步流程执行。
+- 每次只比较一个页面级 Frame，不要直接比较整个 Figma 画布。
+- 叠图代码只能在运行时注入，禁止提交到项目源码。
+- 较低的像素差异比例不能证明颜色完全正确，还必须执行数值颜色检查。
+- 动态内容、动画、Web 字体、视口尺寸、设备像素比和色彩配置都可能制造假差异。
+- 只有用户明确要求修复时才能修改目标项目；仅要求检查时只授权读取和分析。
 
-## 许可协议
+## 完整规则
+
+完整的七步工作流、通过标准、脚本用法、排错方法和清理规则，请查看 [SKILL.md](./SKILL.md)。
+
+## 许可证
 
 [MIT](./LICENSE)

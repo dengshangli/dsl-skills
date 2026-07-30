@@ -1,278 +1,42 @@
-# Agent 工作流 Skills
+# Agent Workflow Skills
 
-这个仓库收录了一组面向智能 Agent 的实用工作流 Skill，覆盖 Figma 设计还原度检查、悟空 HTML 邮件生成、邮件客户端兼容性测试、筋斗云后台模板替换，以及 CRM 模板邮件手动发送。
+English | [中文](./README.zh-CN.md)
 
-仓库采用以 `SKILL.md` 为核心的 Agent Skills 结构，可供支持 Agent Skills 规范或兼容 Skill 目录的智能编码工具与 Agent 使用。每个 Skill 都放在独立目录中，完整规则请查看对应目录下的 `SKILL.md`。
+A collection of reusable Agent Skills for visual QA and email workflows. The repository follows the `SKILL.md`-based Agent Skills structure and can be used by compatible coding agents and automation tools.
 
-## Skill 总览
+Each skill has its own documentation, requirements, examples, and safety notes.
 
-| Skill | 主要用途 | 典型场景 | 关键依赖 |
-|---|---|---|---|
-| [`figma-overlay-check`](figma-overlay-check/SKILL.md) | 将实现页面截图与 Figma 设计稿进行叠加和像素差异分析 | 定位布局、尺寸、位置和颜色偏差 | Figma MCP、Playwright MCP、Node.js 图像处理脚本 |
-| [`wukong-email-template-generator`](wukong-email-template-generator/SKILL.md) | 使用固定的悟空邮件外壳生成 HTML 邮件 | EDM、活动邮件、通知邮件、CRM 邮件 | Python 3、仓库自带生成脚本 |
-| [`email-template-compatibility-test`](email-template-compatibility-test/SKILL.md) | 将本地 HTML 模板批量发送到测试邮箱并记录服务器接受结果 | Gmail、Outlook 等邮箱的送达与渲染测试 | Codex 应用内置浏览器 |
-| [`jingdouyun-email-template-replacement`](jingdouyun-email-template-replacement/SKILL.md) | 用本地 HTML 精确替换筋斗云现有模板的“模板内容” | 批量同步或更新后台邮件模板 | 已登录目标系统的 Chrome、Chrome 控制 Skill |
-| [`crm-email-manual-send`](crm-email-manual-send/SKILL.md) | 将本地文件名映射到 CRM 模板，逐封发送并核验跟进记录 | CRM 模板邮件发送、失败重试、缺失模板排查 | 已登录 CRM 的 Chrome、Chrome 控制 Skill |
+## Skills
 
-## 兼容性说明
+| Skill | Purpose | Main requirements |
+|---|---|---|
+| [`figma-overlay-check`](./figma-overlay-check/README.md) | Compare a web page with a Figma design using runtime overlays, measurements, color checks, and pixel diffs | Figma MCP, Playwright MCP, Node.js |
+| [`wukong-email-template-generator`](./wukong-email-template-generator/README.md) | Generate HTML emails inside the fixed WuKong email shell | Python 3, bundled generator |
+| [`email-template-compatibility-test`](./email-template-compatibility-test/README.md) | Batch-send local HTML templates to test inboxes and record accepted sends | Codex in-app browser |
+| [`jingdouyun-email-template-replacement`](./jingdouyun-email-template-replacement/README.md) | Replace only the content field of matching Jingdouyun email templates | Logged-in Chrome, `chrome:control-chrome` |
+| [`crm-email-manual-send`](./crm-email-manual-send/README.md) | Match local filenames to CRM templates, send each once, and verify follow-up records | Logged-in CRM Chrome, `chrome:control-chrome` |
 
-仓库的文件结构是通用的，但每个 Skill 能否直接运行，取决于宿主 Agent 是否提供所需的 MCP、浏览器控制、本地命令和登录环境。
+## Install
 
-| Skill | 当前运行条件 |
-|---|---|
-| `figma-overlay-check` | 需要 Figma MCP、Playwright MCP 和 Node.js |
-| `wukong-email-template-generator` | 需要 Python 3；当前命令包含作者本机绝对路径，其他用户需要按实际安装位置调整 |
-| `email-template-compatibility-test` | 当前要求 Codex 应用内置浏览器 |
-| `jingdouyun-email-template-replacement` | 当前要求 `chrome:control-chrome` Skill 和已登录目标系统的 Chrome |
-| `crm-email-manual-send` | 当前要求 `chrome:control-chrome` Skill 和已登录目标 CRM 的 Chrome |
-
-本次文档调整不会改变这些依赖。若宿主工具缺少某项能力，应先安装对应插件、MCP 或浏览器控制 Skill，或者选择具备等价能力的运行环境。
-
-## 各 Skill 介绍
-
-### `figma-overlay-check`
-
-**用途：** 通过半透明叠加、像素差异和颜色采样，对比实现页面截图与 Figma 设计稿，定位视觉偏差。
-
-**适用场景：**
-
-- 验收前端页面与 Figma 设计稿的还原度。
-- 排查布局、尺寸、间距、位置和颜色不一致。
-- 在修改 UI 后使用相同截图条件复核偏差是否收敛。
-
-**关键要求：** 需要可在本地运行的网页项目、同视口条件下的设计稿与实现页面，以及 Figma MCP、Playwright MCP 和 Node.js。应按 Skill 规定的顺序使用视口对齐、运行时叠图、DOM 测量、裁剪、颜色采样和像素差异脚本，并以测量结果定位问题；叠图代码不得写入项目源码。
-
-**调用示例：**
-
-> 对比这个 Figma Frame 和当前页面，找出主要视觉偏差并给出修正建议。
-
-### `wukong-email-template-generator`
-
-**用途：** 在标准悟空邮件头部、页脚和全局样式不变的前提下，将新设计的邮件正文装入固定模板并生成完整 HTML。
-
-**适用场景：**
-
-- 创建悟空品牌 EDM、活动营销邮件或 Newsletter。
-- 创建通知邮件、CRM 邮件等需要统一品牌外壳的 HTML 邮件。
-
-**关键要求：** 必须运行 Skill 自带的 `scripts/generate_email.py`，不能绕过生成器直接拼装最终 HTML；固定模板只允许替换“邮件正文”标记对应的内容。
-
-> [!IMPORTANT]
-> 当前 `SKILL.md` 中的示例命令包含作者本机路径 `/Users/dengshangli/.codex/skills/...`。其他用户安装后，需要将该路径替换为自己实际的 Skill 安装目录，例如 `${CODEX_HOME:-$HOME/.codex}/skills/wukong-email-template-generator/scripts/generate_email.py`。
-
-**调用示例：**
-
-> 使用悟空标准邮件模板，生成一封暑期课程报名成功通知邮件。
-
-### `email-template-compatibility-test`
-
-**用途：** 通过网页邮件测试工具，将本地 HTML 模板逐份发送到多个测试邮箱，并维护可审计的成功、失败和待核实清单。
-
-**适用场景：**
-
-- 批量发送 HTML 模板到 Gmail、Outlook 等测试邮箱。
-- 区分“邮件服务器已接受”和“邮件已送达且渲染正常”。
-- 对比不同邮箱客户端中的布局、字体、图片、链接和深色模式表现。
-
-**关键要求：** 必须使用 Codex 应用内置浏览器；实际发送前需要确认模板数量、收件人和预计投递数。服务器接受不等于最终送达或兼容性通过。
-
-**调用示例：**
-
-> 把当前目录下的所有 HTML 邮件发送到这两个测试邮箱，并汇总各模板的接受结果。
-
-### `jingdouyun-email-template-replacement`
-
-**用途：** 将本地 HTML 文件同步到筋斗云 CRM/CMS 中名称完全匹配的现有邮件模板。
-
-**适用场景：**
-
-- 批量更新筋斗云后台已有邮件模板。
-- 将本地设计稿同步到测试环境，同时保留模板名称、主题、分类和状态等其他字段。
-
-**关键要求：** 需要已登录目标系统的 Chrome 会话。只允许修改明确标注为“模板内容”的字段，不创建新模板，也不修改其他字段；提交前必须验证模板名称和唯一匹配关系。
-
-**调用示例：**
-
-> 把当前目录中的 HTML 文件同步到筋斗云同名邮件模板，只替换模板内容。
-
-### `crm-email-manual-send`
-
-**用途：** 根据本地 HTML 文件名，在 CRM 线索页搜索同名模板，逐封手动发送，并通过新的跟进记录核验结果。
-
-**适用场景：**
-
-- 向指定 CRM 线索发送当前目录中的全部模板邮件。
-- 重试本轮未成功发送的模板，同时避免重复发送。
-- 汇总本地存在但 CRM 中不可用的模板名称。
-
-**关键要求：** 需要已登录目标 CRM 的 Chrome 会话和明确的目标线索页。只有用户明确要求发送时才能点击“确定”；发送成功以新的跟进记录为准，不能仅根据主题或弹窗状态推断。
-
-**调用示例：**
-
-> 在这个 CRM 线索页发送当前目录里的所有邮件模板，并告诉我哪些模板在 CRM 中找不到。
-
-## 安装
-
-### 方式一：使用 Skills CLI
-
-推荐使用开源的 [`skills`](https://github.com/vercel-labs/skills) CLI。它可以识别多种 Agent 工具，并让你选择项目级或用户级安装。
-
-当前 CLI 要求 Node.js `>=22.20.0`，请先检查版本：
+The current `skills` CLI requires Node.js `>=22.20.0`.
 
 ```bash
-node --version
-```
-
-交互式选择仓库中的 Skill 和目标 Agent：
-
-```bash
+# Select skills and target agents interactively
 npx skills add dengshangli/skills
-```
 
-安装指定 Skill：
+# Install one skill
+npx skills add dengshangli/skills --skill <skill-name>
 
-```bash
-npx skills add dengshangli/skills --skill figma-overlay-check
-```
-
-安装仓库中的全部 Skill 到所有检测到的 Agent：
-
-```bash
+# Install every skill to all detected agents
 npx skills add dengshangli/skills --all
 ```
 
-安装到用户级目录：
+For project-specific requirements and examples, open the skill name in the table above.
 
-```bash
-npx skills add dengshangli/skills --skill figma-overlay-check --global
-```
+## Compatibility
 
-也可以用 `--agent` 明确指定宿主工具：
+The repository format is portable, but runtime compatibility depends on whether the host agent provides the browser controls, MCP servers, local commands, and authenticated sessions required by a particular skill. Review each skill's requirements before installing or running it.
 
-```bash
-npx skills add dengshangli/skills --skill figma-overlay-check --agent codex
-npx skills add dengshangli/skills --skill figma-overlay-check --agent claude-code
-npx skills add dengshangli/skills --skill figma-overlay-check --agent cursor
-```
+## License
 
-CLI 支持的 Agent 名称和安装位置可能随版本更新，请以 `skills` CLI 的帮助信息为准。
-
-### 方式二：手动整库安装
-
-如果宿主工具尚未被 CLI 支持，也可以克隆仓库并手动复制。先根据宿主工具文档设置其 Skills 目录：
-
-```bash
-git clone https://github.com/dengshangli/skills.git
-cd skills
-
-SKILLS_DIR="/path/to/your-agent/skills"
-mkdir -p "$SKILLS_DIR"
-
-for skill in */SKILL.md; do
-  skill_dir="${skill%/SKILL.md}"
-  if [ -e "$SKILLS_DIR/$skill_dir" ]; then
-    echo "跳过已存在的目录：$SKILLS_DIR/$skill_dir"
-  else
-    cp -R "$skill_dir" "$SKILLS_DIR/"
-  fi
-done
-```
-
-该命令只安装包含顶层 `SKILL.md` 的 Skill 目录，不会复制仓库的 `.git`、`docs` 或根 README，也不会覆盖已有的同名目录。
-
-Codex 的用户级安装目录示例为：
-
-```bash
-SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
-```
-
-其他宿主工具应使用各自文档规定的项目级或用户级目录。
-
-### 方式三：手动安装单个 Skill
-
-下面以 `figma-overlay-check` 为例，使用 Git sparse-checkout 只获取所需目录：
-
-```bash
-git clone --filter=blob:none --no-checkout https://github.com/dengshangli/skills.git skills-single
-cd skills-single
-git sparse-checkout init --cone
-git sparse-checkout set figma-overlay-check
-git checkout master
-
-SKILLS_DIR="/path/to/your-agent/skills"
-mkdir -p "$SKILLS_DIR"
-
-if [ -e "$SKILLS_DIR/figma-overlay-check" ]; then
-  echo "目标目录已存在，未覆盖：$SKILLS_DIR/figma-overlay-check"
-else
-  cp -R figma-overlay-check "$SKILLS_DIR/"
-fi
-```
-
-安装其他 Skill 时，把命令中的 `figma-overlay-check` 替换成下面任一目录名：
-
-- `figma-overlay-check`
-- `wukong-email-template-generator`
-- `email-template-compatibility-test`
-- `jingdouyun-email-template-replacement`
-- `crm-email-manual-send`
-
-## 更新
-
-使用 Skills CLI 安装时，可以运行：
-
-```bash
-npx skills update
-```
-
-手动安装时，进入之前克隆的仓库目录获取最新版本：
-
-```bash
-git pull
-```
-
-查看更新内容后，再把需要更新的 Skill 目录复制到宿主工具的 Skills 目录。由于示例命令默认不覆盖同名目录，请先备份本地自定义内容，再替换旧版本。
-
-## 验证安装
-
-使用 Skills CLI 查看已安装的 Skill：
-
-```bash
-npx skills list
-```
-
-手动安装时，在设置好 `SKILLS_DIR` 后检查：
-
-```bash
-find "$SKILLS_DIR" -maxdepth 2 -name SKILL.md -print
-```
-
-安装或更新后，建议重新启动宿主工具或新建会话，让 Agent 重新发现 Skill。
-
-## 卸载
-
-使用 Skills CLI 卸载：
-
-```bash
-npx skills remove figma-overlay-check
-```
-
-手动安装时，确认目标目录中没有需要保留的自定义修改后，再删除对应目录：
-
-```bash
-rm -r "$SKILLS_DIR/<skill-name>"
-```
-
-请先把 `SKILLS_DIR` 设置为宿主工具准确的 Skills 目录，将 `<skill-name>` 替换为 Skill 目录名，并在执行前再次核对路径。
-
-## 使用说明与安全提示
-
-- 安装完成后，可以在请求中直接写出 Skill 名称，也可以用自然语言描述任务，让 Agent 根据适用场景选择 Skill。
-- 需要网页操作的 Skill 依赖对应的浏览器控制能力，并要求浏览器中已经登录目标系统。
-- 发送邮件、替换后台模板或提交表单属于会改变外部状态的操作，必须由用户明确授权。
-- 不要通过 Cookie、Local Storage、密码或其他会话数据绕过正常登录和页面操作。
-- 执行前请阅读对应的 `SKILL.md`，确认目标环境、浏览器类型和安全约束。
-
-## 许可证
-
-仓库目前未提供许可证文件。在添加明确的开源许可证前，公开访问不代表自动授予复制、修改或再分发许可。
+The repository does not currently have a single repository-wide license. `figma-overlay-check` includes its own [MIT License](./figma-overlay-check/LICENSE); no license is currently granted for the other skills unless stated in their directories.
