@@ -1,4 +1,0 @@
-interface:
-  display_name: "邮件模板兼容性测试"
-  short_description: "批量发送 HTML 邮件模板并审计测试结果"
-  default_prompt: "Use $email-template-compatibility-test to batch-send local HTML email templates to test inboxes and verify accepted sends."

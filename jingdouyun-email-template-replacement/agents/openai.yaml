@@ -1,4 +1,0 @@
-interface:
-  display_name: "筋斗云邮件模板替换"
-  short_description: "仅替换筋斗云邮件模板的“模板内容”字段"
-  default_prompt: "Use $jingdouyun-email-template-replacement to replace only the “模板内容” field of matching 筋斗云 email templates with local HTML files."

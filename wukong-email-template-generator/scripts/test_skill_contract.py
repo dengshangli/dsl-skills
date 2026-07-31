@@ -6,15 +6,12 @@ SKILL_DIR = Path(__file__).resolve().parents[1]
 
 
 class SkillContractTests(unittest.TestCase):
-    def test_skill_uses_generator_name_everywhere(self):
+    def test_skill_uses_generator_name(self):
         instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
-        metadata = (SKILL_DIR / "agents" / "openai.yaml").read_text(encoding="utf-8")
 
         self.assertIn("name: wukong-email-template-generator", instructions)
         self.assertIn("# 悟空邮件模板生成器", instructions)
-        self.assertIn('display_name: "悟空邮件模板生成器"', metadata)
-        self.assertIn("$wukong-email-template-generator", metadata)
-        self.assertNotIn("wukong-email-template-design", instructions + metadata)
+        self.assertNotIn("wukong-email-template-design", instructions)
 
     def test_skill_makes_generator_execution_a_completion_gate(self):
         instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
@@ -23,13 +20,6 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("MUST execute `scripts/generate_email.py`", instructions)
         self.assertIn("Do not report completion", instructions)
         self.assertIn("GENERATOR_EXECUTED=YES", instructions)
-
-    def test_default_prompt_requires_the_generator(self):
-        metadata = (SKILL_DIR / "agents" / "openai.yaml").read_text(encoding="utf-8")
-
-        self.assertIn("generate_email.py", metadata)
-        self.assertIn("完整 HTML", metadata)
-        self.assertIn("只生成一个", metadata)
 
     def test_body_fragment_cannot_be_a_second_html_deliverable(self):
         instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
