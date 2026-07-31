@@ -2,7 +2,7 @@
 
 ## 目标
 
-为 `dengshangli/skills` 仓库新增中文 `README.md`，帮助使用者快速判断各 Skill 的用途，并能选择整库安装或单个 Skill 安装。
+为 `dengshangli/dsl-skills` 仓库新增中文 `README.md`，帮助使用者快速判断各 Skill 的用途，并能选择整库安装或单个 Skill 安装。
 
 ## 读者
 

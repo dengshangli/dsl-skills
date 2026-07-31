@@ -37,10 +37,10 @@
 
 ```bash
 # 项目级或交互式安装
-npx skills add dengshangli/skills --skill figma-overlay-check
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check
 
 # 用户级安装
-npx skills add dengshangli/skills --skill figma-overlay-check --global
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check --global
 ```
 
 ## 使用示例

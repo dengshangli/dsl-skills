@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 将 `dengshangli/figma-overlay-check` 的全部文件和 3 个提交历史迁入 `dengshangli/skills/figma-overlay-check/`，更新中文 README，并在远端迁移验证通过后彻底删除源仓库。
+**Goal:** 将 `dengshangli/figma-overlay-check` 的全部文件和 3 个提交历史迁入 `dengshangli/dsl-skills/figma-overlay-check/`，更新中文 README，并在远端迁移验证通过后彻底删除源仓库。
 
 **Architecture:** 使用非 squash 的 `git subtree add` 将源仓库 `main` 历史合并到目标功能分支，使源提交继续存在于目标提交图中。迁移文件和 README 先进入目标仓库 `master`，再通过 GitHub API 核对远端树、提交历史和公开状态；删除源仓库是最后一个独立阶段。
 
@@ -184,7 +184,7 @@ git commit -m "Document figma overlay check skill"
 
 **Interfaces:**
 - Consumes: Tasks 1–2 的迁移提交。
-- Produces: 远端 `dengshangli/skills` 的已验证 `master`。
+- Produces: 远端 `dengshangli/dsl-skills` 的已验证 `master`。
 
 - [ ] **Step 1: 验证整库安装**
 
@@ -203,7 +203,7 @@ git push -u origin agent/migrate-figma-overlay-check
 ```bash
 git clone --filter=blob:none --no-checkout \
   --branch agent/migrate-figma-overlay-check \
-  https://github.com/dengshangli/skills.git skills-single
+  https://github.com/dengshangli/dsl-skills.git skills-single
 cd skills-single
 git sparse-checkout init --cone
 git sparse-checkout set figma-overlay-check
@@ -258,9 +258,9 @@ git ls-tree -r --name-only origin/master figma-overlay-check
 重新运行并确认：
 
 ```bash
-gh repo view dengshangli/skills \
+gh repo view dengshangli/dsl-skills \
   --json nameWithOwner,visibility,defaultBranchRef,url
-gh api 'repos/dengshangli/skills/contents/figma-overlay-check/SKILL.md?ref=master' \
+gh api 'repos/dengshangli/dsl-skills/contents/figma-overlay-check/SKILL.md?ref=master' \
   --jq '.path'
 git merge-base --is-ancestor figma-overlay-source/main origin/master
 ```
@@ -272,7 +272,7 @@ gh repo view dengshangli/figma-overlay-check \
   --json nameWithOwner,visibility,defaultBranchRef,url
 ```
 
-只有目标为公开 `dengshangli/skills`、默认分支为 `master`、迁移文件和源历史均已存在，且待删除名称精确为 `dengshangli/figma-overlay-check` 时继续。
+只有目标为公开 `dengshangli/dsl-skills`、默认分支为 `master`、迁移文件和源历史均已存在，且待删除名称精确为 `dengshangli/figma-overlay-check` 时继续。
 
 - [ ] **Step 2: 删除源仓库**
 
@@ -298,9 +298,9 @@ if gh repo view dengshangli/figma-overlay-check; then
   exit 1
 fi
 
-gh repo view dengshangli/skills \
+gh repo view dengshangli/dsl-skills \
   --json nameWithOwner,visibility,url
-gh api 'repos/dengshangli/skills/contents/figma-overlay-check/SKILL.md?ref=master' \
+gh api 'repos/dengshangli/dsl-skills/contents/figma-overlay-check/SKILL.md?ref=master' \
   --jq '.path'
 ```
 

@@ -37,10 +37,10 @@ The current `skills` CLI requires Node.js `>=22.20.0`.
 
 ```bash
 # Project or interactive installation
-npx skills add dengshangli/skills --skill figma-overlay-check
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check
 
 # User-level installation
-npx skills add dengshangli/skills --skill figma-overlay-check --global
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check --global
 ```
 
 ## Usage examples

@@ -30,13 +30,13 @@ An Agent Skill for batch-sending local HTML email templates to one or more test 
 ## Install
 
 ```bash
-npx skills add dengshangli/skills --skill email-template-compatibility-test
+npx skills add dengshangli/dsl-skills --skill email-template-compatibility-test
 ```
 
 For a user-level installation:
 
 ```bash
-npx skills add dengshangli/skills --skill email-template-compatibility-test --global
+npx skills add dengshangli/dsl-skills --skill email-template-compatibility-test --global
 ```
 
 ## Usage examples

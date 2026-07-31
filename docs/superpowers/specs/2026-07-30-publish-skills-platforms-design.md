@@ -2,7 +2,7 @@
 
 ## 目标
 
-让 `dengshangli/skills` 中的五个 Skill 可以通过通用 Agent Skills 搜索入口和主流原生 Marketplace 被发现、查看并安装，同时准确区分“已上线”“审核中”和“需要用户授权”。
+让 `dengshangli/dsl-skills` 中的五个 Skill 可以通过通用 Agent Skills 搜索入口和主流原生 Marketplace 被发现、查看并安装，同时准确区分“已上线”“审核中”和“需要用户授权”。
 
 目标 Skill：
 
@@ -18,7 +18,7 @@
 
 - skills.sh 搜索与详情页。
 - `npx skills find` 搜索。
-- `npx skills add dengshangli/skills --skill <skill-name>` 安装。
+- `npx skills add dengshangli/dsl-skills --skill <skill-name>` 安装。
 - GitHub 仓库名称、描述、Topics 和 README 搜索。
 
 ### 原生渠道
@@ -60,7 +60,7 @@ Codex、OpenCode 和其他由 `skills` CLI 支持、但没有独立公共 Skill 
 仓库保持公开，并设置：
 
 - Description：简洁说明这是包含视觉 QA 和邮件工作流的跨 Agent Skills 集合。
-- Homepage：`https://skills.sh/dengshangli/skills`，仅在新索引页面确认存在后设置；索引前不设置失效链接。
+- Homepage：`https://skills.sh/dengshangli/dsl-skills`，仅在新索引页面确认存在后设置；索引前不设置失效链接。
 - Topics：
   - `agent-skills`
   - `ai-agents`
@@ -86,7 +86,7 @@ Codex、OpenCode 和其他由 `skills` CLI 支持、但没有独立公共 Skill 
 
 - 轮询 skills.sh 搜索 API，按 GitHub owner `dengshangli` 和每个 Skill 的关键词查询。
 - 每个新条目必须：
-  - `source` 为 `dengshangli/skills`。
+  - `source` 为 `dengshangli/dsl-skills`。
   - `skillId` 与 Skill 名称一致。
   - 详情页可访问。
 - 运行 `npx skills find <query> --owner dengshangli` 或其非交互 API 等价检查。
@@ -155,7 +155,7 @@ Codex、OpenCode 和其他由 `skills` CLI 支持、但没有独立公共 Skill 
 - 首次版本统一为 `1.0.0`。
 - Slug 使用 Skill 名称。
 - Display name 使用易读名称。
-- Changelog 说明首次从 `dengshangli/skills` 发布。
+- Changelog 说明首次从 `dengshangli/dsl-skills` 发布。
 - 先执行 dry-run 或等价验证，再实际发布。
 - 发布后等待自动安全扫描。
 - 只有详情页和搜索结果可用时标记“已上线”；扫描等待期间标记“审核中”。
@@ -195,7 +195,7 @@ Codex、OpenCode 和其他由 `skills` CLI 支持、但没有独立公共 Skill 
 1. 仓库采用 MIT License，五个 `SKILL.md` 均声明 `license: MIT`。
 2. 五个 Skill 通过 Agent Skills 规范验证。
 3. GitHub Description 和 Topics 完成，仓库仍公开。
-4. skills.sh 使用新源 `dengshangli/skills` 索引五个 Skill。
+4. skills.sh 使用新源 `dengshangli/dsl-skills` 索引五个 Skill。
 5. Claude Code 和 Cursor 的五插件清单通过本地验证并已提交审核，或准确记录用户交互阻塞。
 6. 五个 Skill 已提交 ClawHub，并准确区分扫描中和已上线。
 7. README 只展示已验证链接和准确状态。

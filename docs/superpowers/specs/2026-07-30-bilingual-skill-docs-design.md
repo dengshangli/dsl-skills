@@ -2,7 +2,7 @@
 
 ## 目标
 
-将 `dengshangli/skills` 重组为“根目录简洁导航、Skill 目录详细说明”的双语文档结构，方便中文和英文用户理解、安装和使用每个 Skill，同时保持 Agent 执行规则不变。
+将 `dengshangli/dsl-skills` 重组为“根目录简洁导航、Skill 目录详细说明”的双语文档结构，方便中文和英文用户理解、安装和使用每个 Skill，同时保持 Agent 执行规则不变。
 
 ## 修改范围
 
@@ -67,7 +67,7 @@
 - 将旧安装命令 `npx skills add dengshangli/figma-overlay-check` 更新为：
 
   ```bash
-  npx skills add dengshangli/skills --skill figma-overlay-check
+  npx skills add dengshangli/dsl-skills --skill figma-overlay-check
   ```
 
 - 将旧 skills.sh badge/link 更新为新仓库下的 Skill 路径；若新索引尚未生成，则暂不展示可能失效的 badge，只保留可验证的安装命令。
@@ -104,21 +104,21 @@
 每个 Skill 的详细 README 使用统一形式：
 
 ```bash
-npx skills add dengshangli/skills --skill <skill-name>
+npx skills add dengshangli/dsl-skills --skill <skill-name>
 ```
 
 用户级安装可补充：
 
 ```bash
-npx skills add dengshangli/skills --skill <skill-name> --global
+npx skills add dengshangli/dsl-skills --skill <skill-name> --global
 ```
 
 根 README 使用：
 
 ```bash
-npx skills add dengshangli/skills
-npx skills add dengshangli/skills --skill <skill-name>
-npx skills add dengshangli/skills --all
+npx skills add dengshangli/dsl-skills
+npx skills add dengshangli/dsl-skills --skill <skill-name>
+npx skills add dengshangli/dsl-skills --all
 ```
 
 README 需说明当前 `skills` CLI 要求 Node.js `>=22.20.0`。
@@ -134,7 +134,7 @@ README 需说明当前 `skills` CLI 要求 Node.js `>=22.20.0`。
 1. 所有 12 份 README 文件存在：根目录 2 份，5 个 Skill 各 2 份。
 2. 每份 README 的语言切换链接有效。
 3. 根 README 中的 Skill 链接指向对应语言的详细 README。
-4. 所有安装命令使用 `dengshangli/skills` 和准确的 `--skill` 名称。
+4. 所有安装命令使用 `dengshangli/dsl-skills` 和准确的 `--skill` 名称。
 5. 不再出现已删除的安装源 `dengshangli/figma-overlay-check`。
 6. 英中版本的章节、命令、依赖和限制保持一致。
 7. `git diff --check` 无格式错误。

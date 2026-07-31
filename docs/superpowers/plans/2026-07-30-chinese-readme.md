@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 为 `dengshangli/skills` 仓库新增中文 README，准确介绍四个 Skill，并提供整库和单个 Skill 两种安装方式。
+**Goal:** 为 `dengshangli/dsl-skills` 仓库新增中文 README，准确介绍四个 Skill，并提供整库和单个 Skill 两种安装方式。
 
 **Architecture:** 使用仓库根目录的单一 `README.md` 作为入口文档。README 通过相对链接连接各 Skill 的 `SKILL.md`，安装说明以 Codex 默认 Skill 目录 `${CODEX_HOME:-$HOME/.codex}/skills` 为目标，并使用普通 Git 克隆与 sparse-checkout 分别覆盖整库和单 Skill 安装。
 
@@ -74,7 +74,7 @@
 加入以下安全流程：
 
 ```bash
-git clone https://github.com/dengshangli/skills.git
+git clone https://github.com/dengshangli/dsl-skills.git
 cd skills
 
 SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
@@ -97,7 +97,7 @@ done
 以 `crm-email-manual-send` 为例加入：
 
 ```bash
-git clone --filter=blob:none --no-checkout https://github.com/dengshangli/skills.git skills-single
+git clone --filter=blob:none --no-checkout https://github.com/dengshangli/dsl-skills.git skills-single
 cd skills-single
 git sparse-checkout init --cone
 git sparse-checkout set crm-email-manual-send

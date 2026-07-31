@@ -91,24 +91,24 @@ node --version
 
 ```bash
 # 交互式选择仓库中的 Skill 和目标 Agent
-npx skills add dengshangli/skills
+npx skills add dengshangli/dsl-skills
 
 # 安装指定 Skill
-npx skills add dengshangli/skills --skill figma-overlay-check
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check
 
 # 安装全部 Skill 到所有检测到的 Agent
-npx skills add dengshangli/skills --all
+npx skills add dengshangli/dsl-skills --all
 
 # 安装到用户级目录
-npx skills add dengshangli/skills --skill figma-overlay-check --global
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check --global
 ```
 
 说明可通过 `--agent <agent-name>` 指定宿主，例如：
 
 ```bash
-npx skills add dengshangli/skills --skill figma-overlay-check --agent codex
-npx skills add dengshangli/skills --skill figma-overlay-check --agent claude-code
-npx skills add dengshangli/skills --skill figma-overlay-check --agent cursor
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check --agent codex
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check --agent claude-code
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check --agent cursor
 ```
 
 - [ ] **Step 3: 保留通用手动安装**
@@ -122,7 +122,7 @@ npx skills add dengshangli/skills --skill figma-overlay-check --agent cursor
 示例：
 
 ```bash
-git clone https://github.com/dengshangli/skills.git
+git clone https://github.com/dengshangli/dsl-skills.git
 cd skills
 
 SKILLS_DIR="/path/to/your-agent/skills"

@@ -37,13 +37,13 @@
 ## 安装
 
 ```bash
-npx skills add dengshangli/skills --skill wukong-email-template-generator
+npx skills add dengshangli/dsl-skills --skill wukong-email-template-generator
 ```
 
 安装到用户级目录：
 
 ```bash
-npx skills add dengshangli/skills --skill wukong-email-template-generator --global
+npx skills add dengshangli/dsl-skills --skill wukong-email-template-generator --global
 ```
 
 ## 使用示例

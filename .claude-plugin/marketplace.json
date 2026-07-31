@@ -1,5 +1,5 @@
 {
-  "name": "dengshangli-skills",
+  "name": "dsl-skills",
   "owner": {
     "name": "dengshangli"
   },
@@ -13,8 +13,8 @@
       "author": {
         "name": "dengshangli"
       },
-      "homepage": "https://github.com/dengshangli/skills/tree/master/figma-overlay-check",
-      "repository": "https://github.com/dengshangli/skills",
+      "homepage": "https://github.com/dengshangli/dsl-skills/tree/master/figma-overlay-check",
+      "repository": "https://github.com/dengshangli/dsl-skills",
       "license": "MIT",
       "keywords": [
         "figma",
@@ -37,8 +37,8 @@
       "author": {
         "name": "dengshangli"
       },
-      "homepage": "https://github.com/dengshangli/skills/tree/master/wukong-email-template-generator",
-      "repository": "https://github.com/dengshangli/skills",
+      "homepage": "https://github.com/dengshangli/dsl-skills/tree/master/wukong-email-template-generator",
+      "repository": "https://github.com/dengshangli/dsl-skills",
       "license": "MIT",
       "keywords": [
         "email",
@@ -61,8 +61,8 @@
       "author": {
         "name": "dengshangli"
       },
-      "homepage": "https://github.com/dengshangli/skills/tree/master/email-template-compatibility-test",
-      "repository": "https://github.com/dengshangli/skills",
+      "homepage": "https://github.com/dengshangli/dsl-skills/tree/master/email-template-compatibility-test",
+      "repository": "https://github.com/dengshangli/dsl-skills",
       "license": "MIT",
       "keywords": [
         "email",
@@ -85,8 +85,8 @@
       "author": {
         "name": "dengshangli"
       },
-      "homepage": "https://github.com/dengshangli/skills/tree/master/jingdouyun-email-template-replacement",
-      "repository": "https://github.com/dengshangli/skills",
+      "homepage": "https://github.com/dengshangli/dsl-skills/tree/master/jingdouyun-email-template-replacement",
+      "repository": "https://github.com/dengshangli/dsl-skills",
       "license": "MIT",
       "keywords": [
         "email",
@@ -109,8 +109,8 @@
       "author": {
         "name": "dengshangli"
       },
-      "homepage": "https://github.com/dengshangli/skills/tree/master/crm-email-manual-send",
-      "repository": "https://github.com/dengshangli/skills",
+      "homepage": "https://github.com/dengshangli/dsl-skills/tree/master/crm-email-manual-send",
+      "repository": "https://github.com/dengshangli/dsl-skills",
       "license": "MIT",
       "keywords": [
         "email",

@@ -13,7 +13,7 @@
 - `README.md` 使用英文，`README.zh-CN.md` 使用简体中文。
 - 根目录和五个 Skill 目录均提供语言切换链接。
 - 不修改任何 `SKILL.md`、脚本、资源或许可证。
-- 所有安装命令使用 `dengshangli/skills`。
+- 所有安装命令使用 `dengshangli/dsl-skills`。
 - 单 Skill 安装统一使用 `--skill <skill-name>`。
 - README 披露真实平台依赖，不宣称所有 Skill 在所有宿主中均可无条件运行。
 - `skills` CLI 的 Node.js 版本要求写为 `>=22.20.0`。
@@ -58,9 +58,9 @@
 - 安装只保留以下入口：
 
   ```bash
-  npx skills add dengshangli/skills
-  npx skills add dengshangli/skills --skill <skill-name>
-  npx skills add dengshangli/skills --all
+  npx skills add dengshangli/dsl-skills
+  npx skills add dengshangli/dsl-skills --skill <skill-name>
+  npx skills add dengshangli/dsl-skills --all
   ```
 
 - 说明 Node.js `>=22.20.0`。
@@ -141,8 +141,8 @@ done
 将安装命令改为：
 
 ```bash
-npx skills add dengshangli/skills --skill figma-overlay-check
-npx skills add dengshangli/skills --skill figma-overlay-check --global
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check
+npx skills add dengshangli/dsl-skills --skill figma-overlay-check --global
 ```
 
 删除指向旧仓库 `dengshangli/figma-overlay-check` 的 badge 和链接。
@@ -176,7 +176,7 @@ npx skills add dengshangli/skills --skill figma-overlay-check --global
 - 安装命令：
 
   ```bash
-  npx skills add dengshangli/skills --skill wukong-email-template-generator
+  npx skills add dengshangli/dsl-skills --skill wukong-email-template-generator
   ```
 
 - 披露 `SKILL.md` 当前包含作者本机绝对路径，其他用户需要按实际安装位置调整。
@@ -195,8 +195,8 @@ npx skills add dengshangli/skills --skill figma-overlay-check --global
 for skill in figma-overlay-check wukong-email-template-generator; do
   test -f "$skill/README.md"
   test -f "$skill/README.zh-CN.md"
-  rg -q "dengshangli/skills --skill $skill" "$skill/README.md"
-  rg -q "dengshangli/skills --skill $skill" "$skill/README.zh-CN.md"
+  rg -q "dengshangli/dsl-skills --skill $skill" "$skill/README.md"
+  rg -q "dengshangli/dsl-skills --skill $skill" "$skill/README.zh-CN.md"
 done
 ```
 
@@ -272,8 +272,8 @@ done
 for skill in email-template-compatibility-test jingdouyun-email-template-replacement crm-email-manual-send; do
   test -f "$skill/README.md"
   test -f "$skill/README.zh-CN.md"
-  rg -q "dengshangli/skills --skill $skill" "$skill/README.md"
-  rg -q "dengshangli/skills --skill $skill" "$skill/README.zh-CN.md"
+  rg -q "dengshangli/dsl-skills --skill $skill" "$skill/README.md"
+  rg -q "dengshangli/dsl-skills --skill $skill" "$skill/README.zh-CN.md"
 done
 ```
 
@@ -316,8 +316,8 @@ if rg -n 'dengshangli/figma-overlay-check' --glob 'README*.md'; then
 fi
 
 for skill in figma-overlay-check wukong-email-template-generator email-template-compatibility-test jingdouyun-email-template-replacement crm-email-manual-send; do
-  rg -q "dengshangli/skills --skill $skill" "$skill/README.md"
-  rg -q "dengshangli/skills --skill $skill" "$skill/README.zh-CN.md"
+  rg -q "dengshangli/dsl-skills --skill $skill" "$skill/README.md"
+  rg -q "dengshangli/dsl-skills --skill $skill" "$skill/README.zh-CN.md"
 done
 ```
 

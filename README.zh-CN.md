@@ -22,13 +22,13 @@
 
 ```bash
 # 交互式选择 Skill 和目标 Agent
-npx skills add dengshangli/skills
+npx skills add dengshangli/dsl-skills
 
 # 安装单个 Skill
-npx skills add dengshangli/skills --skill <skill-name>
+npx skills add dengshangli/dsl-skills --skill <skill-name>
 
 # 将全部 Skill 安装到所有检测到的 Agent
-npx skills add dengshangli/skills --all
+npx skills add dengshangli/dsl-skills --all
 ```
 
 各 Skill 的具体要求和调用示例，请点击上表中的 Skill 名称查看。

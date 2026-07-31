@@ -2,7 +2,7 @@
 
 > **Execution note:** Follow this plan task by task. Verify every external state before updating documentation or reporting a platform as live.
 
-**Goal:** Publish the five Skills in `dengshangli/skills` through generic Agent Skills discovery and the Claude Code, Cursor, and ClawHub marketplaces, with accurate install instructions and platform status.
+**Goal:** Publish the five Skills in `dengshangli/dsl-skills` through generic Agent Skills discovery and the Claude Code, Cursor, and ClawHub marketplaces, with accurate install instructions and platform status.
 
 **Architecture:** Keep each existing Skill directory as the canonical, cross-agent package. Add repository-wide licensing and lightweight platform manifests around the existing `SKILL.md` files; do not restructure or rewrite the workflows. Treat repository preparation, submission, and public searchability as separate states so delayed marketplace review is represented accurately.
 
@@ -250,14 +250,14 @@ git commit -m "Add Cursor marketplace manifests"
 
 **External state:**
 
-- Repository: `dengshangli/skills`
+- Repository: `dengshangli/dsl-skills`
 
 ### Step 1: Verify current repository identity
 
 Run:
 
 ```bash
-gh repo view dengshangli/skills \
+gh repo view dengshangli/dsl-skills \
   --json nameWithOwner,isPrivate,defaultBranchRef,description,homepageUrl,repositoryTopics
 ```
 
@@ -369,7 +369,7 @@ Resolve and print the temporary directory path, verify it is under the system te
 
 For each Skill, query the public skills.sh search API by owner `dengshangli` and a specific keyword until:
 
-- `source` equals `dengshangli/skills`;
+- `source` equals `dengshangli/dsl-skills`;
 - `skillId` equals the Skill directory name;
 - its public detail URL responds.
 
@@ -387,7 +387,7 @@ Search existing issues in `vercel-labs/skills`. If no matching issue exists, ope
 
 ### Step 6: Set the GitHub homepage only after verification
 
-Once `https://skills.sh/dengshangli/skills` is confirmed live, set it as the GitHub repository homepage and read it back with `gh repo view`.
+Once `https://skills.sh/dengshangli/dsl-skills` is confirmed live, set it as the GitHub repository homepage and read it back with `gh repo view`.
 
 ---
 
@@ -405,7 +405,7 @@ This verifies that submission uses public files, not unpushed local state.
 
 ### Step 2: Test the self-hosted marketplace path
 
-Using an isolated Claude configuration if supported, add `dengshangli/skills` as a marketplace and verify that the five plugin names are discoverable and individually installable.
+Using an isolated Claude configuration if supported, add `dengshangli/dsl-skills` as a marketplace and verify that the five plugin names are discoverable and individually installable.
 
 Do not alter the user's normal Claude plugin configuration without explicit approval.
 
@@ -486,7 +486,7 @@ For each Skill directory, run the CLI's dry-run, validation, or package inspecti
 Publish all five with changelog:
 
 ```text
-Initial release from dengshangli/skills
+Initial release from dengshangli/dsl-skills
 ```
 
 Do not auto-increment or republish if a slug already exists. Inspect ownership and version state first.
@@ -553,7 +553,7 @@ Check that:
 
 - all relative links resolve;
 - all public URLs return successfully;
-- all commands use `dengshangli/skills`;
+- all commands use `dengshangli/dsl-skills`;
 - no README references the deleted standalone Figma repository as the canonical source;
 - English and Chinese status tables agree.
 

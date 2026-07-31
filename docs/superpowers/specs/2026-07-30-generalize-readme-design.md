@@ -23,7 +23,7 @@
 2. 手动安装到宿主工具的 Skills 目录。
 3. 将 Codex 的 `${CODEX_HOME:-$HOME/.codex}/skills` 作为平台示例，而不是唯一默认目录。
 
-通用安装命令优先介绍仓库支持的实际形式。执行实施前需验证 `npx skills add dengshangli/skills` 及单 Skill 路径的正确语法；若无法从权威工具帮助信息确认，不在 README 中写入未经验证的命令。
+通用安装命令优先介绍仓库支持的实际形式。执行实施前需验证 `npx skills add dengshangli/dsl-skills` 及单 Skill 路径的正确语法；若无法从权威工具帮助信息确认，不在 README 中写入未经验证的命令。
 
 ## 兼容性说明
 

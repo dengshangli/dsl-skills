@@ -32,13 +32,13 @@
 ## 安装
 
 ```bash
-npx skills add dengshangli/skills --skill crm-email-manual-send
+npx skills add dengshangli/dsl-skills --skill crm-email-manual-send
 ```
 
 安装到用户级目录：
 
 ```bash
-npx skills add dengshangli/skills --skill crm-email-manual-send --global
+npx skills add dengshangli/dsl-skills --skill crm-email-manual-send --global
 ```
 
 ## 使用示例

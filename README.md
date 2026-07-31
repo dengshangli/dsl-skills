@@ -22,13 +22,13 @@ The current `skills` CLI requires Node.js `>=22.20.0`.
 
 ```bash
 # Select skills and target agents interactively
-npx skills add dengshangli/skills
+npx skills add dengshangli/dsl-skills
 
 # Install one skill
-npx skills add dengshangli/skills --skill <skill-name>
+npx skills add dengshangli/dsl-skills --skill <skill-name>
 
 # Install every skill to all detected agents
-npx skills add dengshangli/skills --all
+npx skills add dengshangli/dsl-skills --all
 ```
 
 For project-specific requirements and examples, open the skill name in the table above.

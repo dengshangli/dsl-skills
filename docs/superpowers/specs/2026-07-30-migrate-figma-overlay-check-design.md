@@ -2,7 +2,7 @@
 
 ## 目标
 
-将公开仓库 `dengshangli/figma-overlay-check` 完整迁入公开仓库 `dengshangli/skills` 的 `figma-overlay-check/` 目录，保留源仓库的 3 个 Git 提交历史。确认目标仓库迁移结果完整后，彻底删除源仓库。
+将公开仓库 `dengshangli/figma-overlay-check` 完整迁入公开仓库 `dengshangli/dsl-skills` 的 `figma-overlay-check/` 目录，保留源仓库的 3 个 Git 提交历史。确认目标仓库迁移结果完整后，彻底删除源仓库。
 
 ## 迁移范围
 
@@ -45,7 +45,7 @@
 3. 目标仓库历史包含源仓库的 3 个提交对象。
 4. 根 README 的相对链接有效，整库安装和 sparse-checkout 单 Skill 安装仍可用。
 5. `git diff --check` 无格式错误。
-6. 迁移提交已出现在远端 `dengshangli/skills` 的 `master`。
+6. 迁移提交已出现在远端 `dengshangli/dsl-skills` 的 `master`。
 7. 从远端 `master` 重新读取的 `figma-overlay-check/` 文件与源仓库一致。
 
 ## 删除源仓库
@@ -58,7 +58,7 @@
 
 ## 验收标准
 
-- `dengshangli/skills` 的 `master` 包含 `figma-overlay-check/` 全部文件。
+- `dengshangli/dsl-skills` 的 `master` 包含 `figma-overlay-check/` 全部文件。
 - 目标仓库可以追溯源仓库原有的 3 个提交。
 - 根 README 使用中文介绍第五个 Skill 及安装方式。
 - `dengshangli/figma-overlay-check` 已被彻底删除。
