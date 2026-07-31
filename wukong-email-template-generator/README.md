@@ -37,13 +37,7 @@ Other users must replace that path with the generator's actual installed locatio
 ## Install
 
 ```bash
-npx skills add dengshangli/dsl-skills --skill wukong-email-template-generator
-```
-
-For a user-level installation:
-
-```bash
-npx skills add dengshangli/dsl-skills --skill wukong-email-template-generator --global
+npx skills add dengshangli/dsl-skills --global --agent universal --skill wukong-email-template-generator
 ```
 
 ## Usage examples

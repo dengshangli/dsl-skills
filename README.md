@@ -18,17 +18,17 @@ Each skill has its own documentation, requirements, examples, and safety notes.
 
 ## Install
 
-The current `skills` CLI requires Node.js `>=22.20.0`.
+The current `skills` CLI requires Node.js `>=22.20.0`. All commands below install only to the user-level shared root `~/.agents/skills/`; compatible AI tools can use the same canonical copy.
 
 ```bash
-# Select skills and target agents interactively
-npx skills add dengshangli/dsl-skills
+# Select skills interactively
+npx skills add dengshangli/dsl-skills --global --agent universal
 
 # Install one skill
-npx skills add dengshangli/dsl-skills --skill <skill-name>
+npx skills add dengshangli/dsl-skills --global --agent universal --skill <skill-name>
 
-# Install every skill to all detected agents
-npx skills add dengshangli/dsl-skills --all
+# Install every skill to the shared root
+npx skills add dengshangli/dsl-skills --global --agent universal --skill '*' --yes
 ```
 
 For project-specific requirements and examples, open the skill name in the table above.

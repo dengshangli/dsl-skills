@@ -32,13 +32,7 @@ An Agent Skill for manually sending CRM template emails by matching local HTML f
 ## Install
 
 ```bash
-npx skills add dengshangli/dsl-skills --skill crm-email-manual-send
-```
-
-For a user-level installation:
-
-```bash
-npx skills add dengshangli/dsl-skills --skill crm-email-manual-send --global
+npx skills add dengshangli/dsl-skills --global --agent universal --skill crm-email-manual-send
 ```
 
 ## Usage examples

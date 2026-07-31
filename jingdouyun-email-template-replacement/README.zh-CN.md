@@ -30,13 +30,7 @@
 ## 安装
 
 ```bash
-npx skills add dengshangli/dsl-skills --skill jingdouyun-email-template-replacement
-```
-
-安装到用户级目录：
-
-```bash
-npx skills add dengshangli/dsl-skills --skill jingdouyun-email-template-replacement --global
+npx skills add dengshangli/dsl-skills --global --agent universal --skill jingdouyun-email-template-replacement
 ```
 
 ## 使用示例

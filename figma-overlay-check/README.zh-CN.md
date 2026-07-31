@@ -36,11 +36,8 @@
 当前 `skills` CLI 要求 Node.js `>=22.20.0`。
 
 ```bash
-# 项目级或交互式安装
-npx skills add dengshangli/dsl-skills --skill figma-overlay-check
-
-# 用户级安装
-npx skills add dengshangli/dsl-skills --skill figma-overlay-check --global
+# 安装到用户级共享根目录 ~/.agents/skills/
+npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-overlay-check
 ```
 
 ## 使用示例

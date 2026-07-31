@@ -36,11 +36,8 @@ An Agent Skill for checking how faithfully a locally running web page reproduces
 The current `skills` CLI requires Node.js `>=22.20.0`.
 
 ```bash
-# Project or interactive installation
-npx skills add dengshangli/dsl-skills --skill figma-overlay-check
-
-# User-level installation
-npx skills add dengshangli/dsl-skills --skill figma-overlay-check --global
+# Install to the user-level shared root ~/.agents/skills/
+npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-overlay-check
 ```
 
 ## Usage examples

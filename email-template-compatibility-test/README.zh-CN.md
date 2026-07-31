@@ -30,13 +30,7 @@
 ## 安装
 
 ```bash
-npx skills add dengshangli/dsl-skills --skill email-template-compatibility-test
-```
-
-安装到用户级目录：
-
-```bash
-npx skills add dengshangli/dsl-skills --skill email-template-compatibility-test --global
+npx skills add dengshangli/dsl-skills --global --agent universal --skill email-template-compatibility-test
 ```
 
 ## 使用示例

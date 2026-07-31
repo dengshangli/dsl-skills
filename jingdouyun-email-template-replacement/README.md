@@ -30,13 +30,7 @@ An Agent Skill for synchronizing local HTML files with existing Jingdouyun CRM/C
 ## Install
 
 ```bash
-npx skills add dengshangli/dsl-skills --skill jingdouyun-email-template-replacement
-```
-
-For a user-level installation:
-
-```bash
-npx skills add dengshangli/dsl-skills --skill jingdouyun-email-template-replacement --global
+npx skills add dengshangli/dsl-skills --global --agent universal --skill jingdouyun-email-template-replacement
 ```
 
 ## Usage examples

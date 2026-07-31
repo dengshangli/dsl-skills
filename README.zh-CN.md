@@ -18,17 +18,17 @@
 
 ## 安装
 
-当前 `skills` CLI 要求 Node.js `>=22.20.0`。
+当前 `skills` CLI 要求 Node.js `>=22.20.0`。以下命令只安装到用户级共享根目录 `~/.agents/skills/`，兼容的 AI 工具共用同一份 Skill。
 
 ```bash
-# 交互式选择 Skill 和目标 Agent
-npx skills add dengshangli/dsl-skills
+# 交互式选择 Skill
+npx skills add dengshangli/dsl-skills --global --agent universal
 
 # 安装单个 Skill
-npx skills add dengshangli/dsl-skills --skill <skill-name>
+npx skills add dengshangli/dsl-skills --global --agent universal --skill <skill-name>
 
-# 将全部 Skill 安装到所有检测到的 Agent
-npx skills add dengshangli/dsl-skills --all
+# 将全部 Skill 安装到共享根目录
+npx skills add dengshangli/dsl-skills --global --agent universal --skill '*' --yes
 ```
 
 各 Skill 的具体要求和调用示例，请点击上表中的 Skill 名称查看。
