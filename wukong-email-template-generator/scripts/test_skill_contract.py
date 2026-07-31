@@ -39,6 +39,13 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("`.txt` suffix", instructions)
         self.assertIn("Never save the body fragment with an `.html` suffix", instructions)
 
+    def test_td_width_is_only_used_when_required(self):
+        instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+
+        self.assertIn("Do not add width to `<td>` elements by default", instructions)
+        self.assertIn("fixed columns, image placeholders, or email-client compatibility", instructions)
+        self.assertIn('`width` attribute and inline `style="width:…"`', instructions)
+
 
 if __name__ == "__main__":
     unittest.main()
