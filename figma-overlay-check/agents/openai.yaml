@@ -1,0 +1,4 @@
+interface:
+  display_name: "Figma Overlay Check"
+  short_description: "Compare and fix web UI against a Figma overlay"
+  default_prompt: "Use $figma-overlay-check to compare this page with its Figma design, fix fidelity issues, preserve the final overlay, and tell me to use $figma-overlay-cleanup after review."

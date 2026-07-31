@@ -14,7 +14,7 @@ An Agent Skill for checking how faithfully a locally running web page reproduces
 4. Locates mismatches with diff regions, image crops, and DOM measurements.
 5. Checks rendered colors against Figma values and supports perceptual ΔE sampling.
 6. Produces a pixel mismatch score and ranked mismatch regions.
-7. Removes temporary images and confirms no overlay code entered the source tree.
+7. Restores and preserves the final overlay for manual review, records its artifacts, and prompts the user to run `figma-overlay-cleanup` afterward.
 
 ## Use cases
 
@@ -54,11 +54,13 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - A low pixel mismatch score does not prove that colors are correct; run the numeric color checks too.
 - Dynamic content, animations, web fonts, viewport size, device pixel ratio, and color profiles can create false differences.
 - The target project may be changed only when the user asks for fixes. A review-only request authorizes inspection, not source edits.
+- The completed check intentionally leaves the overlay visible and writes `.figma-overlay-state.json` in the project root.
+- After manual review, invoke `$figma-overlay-cleanup` or say "删除叠图" to remove the overlay and recorded image artifacts without reverting UI fixes.
 
 ## Full instructions
 
-See [SKILL.md](./SKILL.md) for the complete seven-step workflow, pass criteria, scripts, troubleshooting guidance, and cleanup rules.
+See [SKILL.md](./SKILL.md) for the complete seven-step workflow, pass criteria, scripts, troubleshooting guidance, overlay preservation, and cleanup handoff.
 
 ## License
 
-This Skill is licensed under the [MIT License](./LICENSE).
+This Skill is licensed under the repository's [MIT License](../LICENSE).

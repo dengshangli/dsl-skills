@@ -1,12 +1,11 @@
 ---
 name: figma-overlay-check
-description: Use when verifying UI fidelity against a Figma design — pixel-perfect walkthroughs, checking whether a page matches the mockup, or when the user mentions "overlay comparison", "design diff", "visual QA", "还原度", "叠图比对". For web projects that can run locally (requires Figma MCP and Playwright MCP).
-license: MIT
+description: Verify and improve web UI fidelity against a Figma design by exporting a page-level Frame, injecting a runtime comparison overlay, locating visual differences, editing the UI, and quantifying the result. Use for pixel-perfect walkthroughs or when the user mentions "overlay comparison", "design diff", "visual QA", "还原度", or "叠图比对". Requires a locally runnable web project, Figma MCP, and browser automation.
 ---
 
 # Figma Overlay Fidelity Check
 
-Core idea: export the Figma design as a PNG, then use Playwright's `browser_evaluate` to inject it **at runtime** as a top-level overlay on the page, combined with pixel diffing for quantified results. Because the injection happens at runtime, **you must not (and need not) modify project source code** — a page refresh clears everything.
+Core idea: export the Figma design as a PNG, then use Playwright's `browser_evaluate` to inject it **at runtime** as a top-level overlay on the page, combined with pixel diffing for quantified results. Because the injection happens at runtime, **you must not (and need not) modify project source code** — a page refresh clears the injected DOM and style.
 
 ## Workflow
 
@@ -18,12 +17,12 @@ Task Progress:
 - [ ] Step 4: Region cropping + DOM measurement to locate and fix diffs
 - [ ] Step 5: Color check (computed styles vs Figma values, ΔE sampling)
 - [ ] Step 6: Quantify with pixel diff
-- [ ] Step 7: Cleanup
+- [ ] Step 7: Restore and preserve the overlay for manual review
 ```
 
 ### Step 1: Export the design
 
-Use Figma MCP `download_assets` (defaultFormat: png) to export the target Frame, save it to `/tmp/figma-overlay/design.png`, and record the Frame's **logical width/height** (e.g. 1400×4283).
+Use Figma MCP `download_assets` (defaultFormat: png) to export the target Frame, save it to `/tmp/figma-overlay/design.png`, and record the Frame's **logical width/height** (e.g. 1400×4283). Record every exact path used for the overlay image and generated comparison artifacts so Step 7 can write a cleanup manifest.
 
 **Key gotcha: Figma caps exports at 4096px on the long edge.** Long pages get proportionally downscaled on export (e.g. 1400 wide becomes 1339). Use `file` or `sips` to confirm the actual pixel size. The overlay is unaffected (CSS stretches it back to logical width), and the Step 5 diff script auto-resamples widths, so no manual scaling is needed.
 
@@ -37,7 +36,7 @@ One-line sanity check: `document.body.scrollHeight` should be within a few px of
 
 Ways to make the image accessible to the page, in order of preference:
 
-1. **Dev server static directory** (recommended): copy design.png to something like `public/__figma_overlay.png`, inject `src="/__figma_overlay.png"`, delete the file when done
+1. **Dev server static directory** (recommended): copy design.png to something like `public/__figma_overlay.png` and inject `src="/__figma_overlay.png"`; keep this file at handoff so the final overlay remains available for the user's manual review
 2. **base64 data URL**: fallback when there's no static directory; note very large images may exceed the evaluate argument size limit
 
 Inject with `browser_evaluate` (waiting for web fonts and disabling animations along the way — fonts still on fallback produce large false text diffs):
@@ -46,7 +45,9 @@ Inject with `browser_evaluate` (waiting for web fonts and disabling animations a
 async () => {
   await document.fonts.ready;
   document.getElementById('__figma_overlay__')?.remove();
+  document.getElementById('__figma_overlay_style__')?.remove();
   const style = document.createElement('style');
+  style.id = '__figma_overlay_style__';
   style.textContent = '* { animation: none !important; transition: none !important; }';
   document.head.appendChild(style);
   const img = document.createElement('img');
@@ -134,11 +135,39 @@ The script auto-resamples the wider image to the narrower width, so Figma's expo
 
 Pass criteria: mismatch < 2%, every reported region is explainable as text anti-aliasing or photo-edge noise (low density, no large solid blocks), **and the Step 5 color check passed** — the pixel score alone can be green while colors are uniformly off.
 
-### Step 7: Cleanup
+After quantification, **re-inject the overlay before finishing**. Step 6 temporarily removes it only to obtain a clean page screenshot; it must not leave the user's page without the overlay.
 
-1. Delete the temporary overlay image from `public/`, refresh and confirm the overlay is gone
-2. Confirm no overlay-related code exists in source (this skill never writes source code — if any exists, that's a violation)
-3. Clean up `/tmp/figma-overlay/` and screenshot files in the home directory
+### Step 7: Restore and preserve the overlay for manual review
+
+1. Re-inject the overlay using the same image, dimensions, and final comparison mode used in Step 3
+2. Leave the overlay visible in the current browser page so the user can scroll through the page and perform one final visual comparison themselves
+3. If the image is served from the project's static directory, **do not delete it at the end of the task**; it must remain available for the preserved runtime overlay
+4. Confirm no overlay injection code exists in project source (the runtime overlay and the temporary static image asset are allowed; component, layout, or global-style changes for the overlay are not)
+5. Create or update `<project-root>/.figma-overlay-state.json` with absolute paths and the following shape:
+
+```json
+{
+  "version": 1,
+  "projectRoot": "/absolute/path/to/project",
+  "pageUrl": "http://localhost:3000/page",
+  "staticImagePath": "/absolute/path/to/project/public/__figma_overlay.png",
+  "downloadedImagePath": "/tmp/figma-overlay/design.png",
+  "artifactPaths": [
+    "/tmp/figma-overlay/page.png",
+    "/tmp/figma-overlay/diff.png"
+  ],
+  "overlayElementId": "__figma_overlay__",
+  "overlayStyleId": "__figma_overlay_style__"
+}
+```
+
+Before replacing an existing manifest, read it and confirm that it belongs to the same canonical project root. Use `null` for an image path that does not apply, and list only overlay-specific files in `artifactPaths`; never list project source files or directories. The manifest is temporary overlay state, must not be committed, and must remain until `$figma-overlay-cleanup` removes it.
+
+The final handoff **must** tell the user that the overlay has intentionally been left active for manual review, identify the state manifest, and explicitly prompt them to invoke `$figma-overlay-cleanup` after review. Include a directly actionable sentence such as:
+
+> 叠图已保留供你手动复查。确认完成后，请调用 `$figma-overlay-cleanup`，或直接回复“删除叠图”，以移除叠图元素、样式和已记录的图片文件，同时保留本次 UI 修改。
+
+Do not omit this cleanup prompt even when the fidelity check passes with no further code changes. Also mention that a page refresh clears the runtime-injected overlay; if that happens, re-inject it instead of treating the comparison as complete.
 
 ## Frequent Real-World Diff Causes (check these first)
 
