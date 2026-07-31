@@ -36,6 +36,10 @@ The generated file at `OUTPUT` is the only deliverable. Exactly one new `.html` 
 
 Treat `assets/template.html` as immutable. The generator replaces only its single `邮件正文` placeholder. Never change the header, footer, shell, global styles, links, attributes, whitespace, or any other template byte.
 
+## Email body markup
+
+Do not add width to `<td>` elements by default. This applies to both the `width` attribute and inline `style="width:…"`. Allow a `<td>` width only when the layout genuinely requires fixed columns, image placeholders, or email-client compatibility. Prefer natural table sizing when none of those conditions applies.
+
 ## Non-negotiable rules
 
 - Never substitute another script, direct file write, copy command, heredoc, formatter, or DOM serializer for `generate_email.py`.
