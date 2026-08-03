@@ -1,72 +1,87 @@
 ---
 name: figma-overlay-cleanup
-description: Safely remove a Figma comparison overlay previously preserved by figma-overlay-check, including its runtime DOM/style, recorded static image, downloaded design image, diff artifacts, and state manifest, without reverting UI fidelity fixes. Use only when the user explicitly says "删除叠图", "移除叠图", "清理叠图", "删除比对图片", "remove overlay", or otherwise clearly asks to remove a preserved Figma overlay.
+description: Safely remove a Figma comparison overlay preserved by figma-overlay-check, including a source-backed persistent overlay, its marked integration blocks, static design image, temporary artifacts, state manifest, or a legacy runtime overlay, without reverting UI fidelity fixes. Use only when the user explicitly says "删除叠图", "移除叠图", "清理叠图", "删除比对图片", "remove overlay", or otherwise clearly asks to remove a preserved Figma overlay.
 ---
 
 # Figma Overlay Cleanup
 
-Remove only the overlay state created by `$figma-overlay-check`. Treat the user's explicit cleanup request as authorization to delete the recorded overlay artifacts, but not as authorization to revert UI implementation changes.
+Remove only comparison artifacts recorded by `$figma-overlay-check`. Treat the user's explicit cleanup request as authorization to remove the overlay implementation, not as authorization to revert UI fidelity fixes.
 
 ## Workflow
 
-### 1. Resolve the project and manifest
+### 1. Resolve and validate the manifest
 
-Resolve the canonical project root from the current workspace or the path named by the user. Look only for:
+Resolve the canonical project root and read only:
 
 ```text
 <project-root>/.figma-overlay-state.json
 ```
 
-Read the manifest before changing anything. Validate that:
+Require `projectRoot` to equal the canonical project root. Support:
 
-- `version` is supported
-- canonical `projectRoot` equals the resolved project root
-- `overlayElementId` is `__figma_overlay__`
-- `overlayStyleId` is `__figma_overlay_style__`
-- `staticImagePath`, when present, resolves inside `projectRoot` and names an overlay-specific image
-- `downloadedImagePath` and every `artifactPaths` entry, when present, are exact file paths for this overlay; temporary paths should resolve under `/tmp/figma-overlay`
-- no recorded entry is a directory or a normal project source file
+- version 2: source-backed overlay
+- version 1: legacy runtime-injected overlay
 
-Stop and ask the user if the manifest is missing, invalid, belongs to another project, or contains an unsafe or ambiguous path. Do not guess paths, search broadly for similar files, or infer permission to delete unrecorded artifacts.
+Stop and ask the user if the manifest is missing, invalid, belongs to another project, uses an unsupported version, or contains an unsafe or ambiguous path. Do not guess paths or infer permission to remove unrecorded files.
 
-### 2. Remove the runtime overlay
+For every version, validate that `staticImagePath`, `downloadedImagePath`, and each `artifactPaths` item is an exact file path. Project paths must resolve inside `projectRoot`; temporary paths must resolve under `/tmp/figma-overlay`. Reject directories, broad paths, wildcards, and ordinary application assets.
 
-Open or reuse the page recorded in `pageUrl` when available, then remove only the recorded overlay element and style:
+For version 2, additionally validate:
 
-```javascript
-() => {
-  document.getElementById('__figma_overlay__')?.remove();
-  document.getElementById('__figma_overlay_style__')?.remove();
-}
-```
+- every `generatedSourcePaths` item resolves inside `projectRoot`, names an overlay-specific file, and is not an existing application file reused for integration
+- every `integrationBlocks` item has an exact project file path plus `FIGMA_OVERLAY_START` and `FIGMA_OVERLAY_END` markers
+- each integration file contains exactly one start marker and one end marker in the correct order
+- the marked block is limited to overlay imports, mounts, configuration, or comments; stop if it includes ordinary application behavior
+- no path appears in both `generatedSourcePaths` and `integrationBlocks`
 
-If the page is unavailable, continue with validated file cleanup and report that browser DOM verification could not be performed. A refresh may already have removed the runtime elements; their absence is a successful no-op.
+For version 1, validate the recorded element and style IDs exactly as the legacy manifest specifies.
 
-### 3. Delete recorded files
+### 2. Remove source integration for version 2
 
-Inspect each recorded path immediately before deletion. Delete only existing regular files or symlinks that passed Step 1 validation, using exact quoted paths and non-recursive operations. Delete:
+Inspect each integration file immediately before editing. Use `apply_patch` to remove the complete marker-delimited block, including the marker lines, while preserving all surrounding code. Do not rewrite or reformat unrelated content.
 
-1. `staticImagePath`
-2. `downloadedImagePath`
-3. every file in `artifactPaths`
-4. `.figma-overlay-state.json` last
+After each edit:
 
-Do not delete directories, use wildcards, run recursive deletion, or remove files merely because their names look related. Do not edit, delete, reset, or revert UI source files.
+- confirm both markers are absent
+- inspect the diff to ensure only the recorded overlay block was removed
+- run the narrowest available syntax, type, or build check for the touched file when practical
 
-### 4. Verify and report
+If the block is missing, duplicated, changed beyond recognition, or entangled with application behavior, stop before deleting any source or image files and ask the user how to proceed.
 
-Verify:
+### 3. Remove dedicated overlay files
 
-- the overlay element and style are absent when the page is reachable
-- every recorded overlay file is absent
-- the state manifest is absent
-- no UI implementation change was reverted
+Delete only validated paths, using exact quoted paths and non-recursive operations, in this order:
 
-Report the runtime elements and exact files removed. If a recorded file was already absent, identify it as already absent rather than claiming it was deleted.
+1. version 2 `generatedSourcePaths`
+2. `staticImagePath`
+3. `downloadedImagePath`
+4. every `artifactPaths` entry
+
+Inspect each path immediately before deletion. Delete only regular files or symlinks. Do not delete directories, use wildcards, or remove files merely because their names look related. Leave empty directories in place unless the user explicitly asks to remove them and they are verified overlay-only directories.
+
+### 4. Clear the browser overlay
+
+For version 2, refresh the recorded `pageUrl` when available and verify the code-backed overlay no longer renders.
+
+For version 1, remove only the recorded runtime element and style, then verify they are absent. A refresh may already have removed them; absence is a successful no-op.
+
+If the page is unavailable, continue only with already validated file cleanup and report that browser verification could not be performed.
+
+### 5. Remove the manifest and report
+
+Delete `.figma-overlay-state.json` last, only after all required source edits and file deletions succeed. Then verify:
+
+- no recorded overlay file remains
+- all recorded integration markers are absent for version 2
+- the overlay is absent from the page when reachable
+- the manifest is absent
+- UI fidelity fixes remain intact
+
+Report exact files and integration blocks removed. Identify already-absent files as already absent rather than claiming they were deleted.
 
 ## Rules
 
-- Require an explicit cleanup instruction; never run as automatic completion of a fidelity check
-- Treat the manifest as the deletion allowlist
-- Preserve all UI fidelity fixes
-- Prefer a partial, clearly reported cleanup over deleting an unverified path
+- Require an explicit cleanup instruction.
+- Treat the manifest as the deletion and edit allowlist.
+- Never revert UI fidelity fixes or unrelated source changes.
+- Prefer a partial, clearly reported cleanup over editing an ambiguous block or deleting an unverified path.

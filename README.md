@@ -10,8 +10,8 @@ Each skill has its own documentation, requirements, examples, and safety notes.
 
 | Skill | Purpose | Main requirements |
 |---|---|---|
-| [`figma-overlay-check`](./figma-overlay-check/README.md) | Compare a web page with a Figma design using runtime overlays, measurements, color checks, and pixel diffs | Figma MCP, Playwright MCP, Node.js |
-| [`figma-overlay-cleanup`](./figma-overlay-cleanup/README.md) | Safely remove a preserved Figma overlay and its recorded artifacts without reverting UI fixes | Valid overlay state manifest, browser automation when available |
+| [`figma-overlay-check`](./figma-overlay-check/README.md) | Add a persistently mounted overlay in project code and compare a web page with Figma using measurements, color checks, and pixel diffs | Figma MCP, browser automation, Node.js |
+| [`figma-overlay-cleanup`](./figma-overlay-cleanup/README.md) | Safely remove a source-backed or legacy runtime Figma overlay and its recorded artifacts without reverting UI fixes | Valid overlay state manifest, browser automation |
 | [`wukong-email-template-generator`](./wukong-email-template-generator/README.md) | Generate HTML emails inside the fixed WuKong email shell | Python 3, bundled generator |
 | [`email-template-compatibility-test`](./email-template-compatibility-test/README.md) | Batch-send local HTML templates to test inboxes and record accepted sends | Codex in-app browser |
 | [`jingdouyun-email-template-replacement`](./jingdouyun-email-template-replacement/README.md) | Replace only the content field of matching Jingdouyun email templates | Logged-in Chrome, `chrome:control-chrome` |
