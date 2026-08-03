@@ -10,7 +10,7 @@ An Agent Skill for checking how faithfully a locally running page reproduces a F
 
 1. Exports a page-level Figma Frame as a PNG and accounts for Figma's 4096 px export limit.
 2. Aligns the browser viewport and checks the page's total height.
-3. Creates one refresh-persistent temporary overlay file, imported once by the page, with hidden, opacity, and difference modes.
+3. Creates one refresh-persistent temporary overlay file rendered at the exact Figma Frame logical width and imported once by the page.
 4. Locates mismatches with diff regions, image crops, and DOM measurements, then actively fixes the page.
 5. Checks rendered colors against Figma values and supports perceptual ΔE sampling.
 6. Produces a pixel mismatch score and ranked mismatch regions.
@@ -53,6 +53,8 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - All overlay DOM, styles, controls, and state must stay in one temporary source file.
 - The page entry may contain only one marked side-effect import between `FIGMA_OVERLAY_START/END`, with no inline overlay component or styles.
 - It must provide hidden, opacity, and difference modes plus opacity control, and remain available after refresh.
+- The image width must exactly equal the Figma Frame logical width; body, viewport, parent, exported PNG, `100%`, and `100vw` widths are not substitutes.
+- Before comparison, verify `getBoundingClientRect().width` within 0.1 CSS px of the recorded Frame width.
 - Once the overlay works, the agent must actively fix revealed UI differences and repeat comparison before asking the user to confirm.
 - User confirmation begins only after the pass criteria are met or all remaining differences are quantified and explained.
 - A low pixel mismatch score does not prove that colors are correct; run the numeric color checks too.
