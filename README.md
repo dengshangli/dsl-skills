@@ -34,6 +34,17 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill '*' --y
 
 For project-specific requirements and examples, open the skill name in the table above.
 
+## Install the Wukong plugin
+
+The WuKong generator is also available as a portable skills-only plugin:
+
+```bash
+codex plugin marketplace add dengshangli/dsl-skills --ref master
+codex plugin add wukong-email-template-generator@dsl-skills
+```
+
+See the [plugin README](./plugins/wukong-email-template-generator/README.md) for details.
+
 ## Compatibility
 
 The repository format is portable, but runtime compatibility depends on whether the host agent provides the browser controls, MCP servers, local commands, and authenticated sessions required by a particular skill. Review each skill's requirements before installing or running it.

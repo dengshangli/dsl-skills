@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wukong Email Template Generator"
+  short_description: "Generate HTML emails in the Wukong shell"
+  default_prompt: "Use $wukong-email-template-generator to create the requested WuKong HTML email and run the required generator command before delivering it."

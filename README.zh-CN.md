@@ -34,6 +34,17 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill '*' --y
 
 各 Skill 的具体要求和调用示例，请点击上表中的 Skill 名称查看。
 
+## 安装悟空插件
+
+悟空邮件生成器也提供可移植的纯技能插件版本：
+
+```bash
+codex plugin marketplace add dengshangli/dsl-skills --ref master
+codex plugin add wukong-email-template-generator@dsl-skills
+```
+
+详细说明见[插件 README](./plugins/wukong-email-template-generator/README.md)。
+
 ## 兼容性
 
 仓库格式是通用的，但实际运行取决于宿主 Agent 是否提供特定 Skill 所需的浏览器控制、MCP、本地命令和已登录会话。安装或执行前请阅读对应 Skill 的环境要求。
