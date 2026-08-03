@@ -1,4 +1,4 @@
 interface:
   display_name: "Figma Overlay Check"
   short_description: "Add a removable single-file Figma overlay"
-  default_prompt: "Use $figma-overlay-check to add the single-file overlay at the exact Figma Frame width, actively fix revealed UI differences, verify the result, and leave it for my confirmation."
+  default_prompt: "Use $figma-overlay-check to add the single-file overlay at the exact Figma Frame width and page-canvas origin, actively fix revealed UI differences, verify the result, and leave it for my confirmation."

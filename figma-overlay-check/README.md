@@ -54,7 +54,8 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - The page entry may contain only one marked side-effect import between `FIGMA_OVERLAY_START/END`, with no inline overlay component or styles.
 - It must provide hidden, opacity, and difference modes plus opacity control, and remain available after refresh.
 - The image width must exactly equal the Figma Frame logical width; body, viewport, parent, exported PNG, `100%`, and `100vw` widths are not substitutes.
-- Before comparison, verify `getBoundingClientRect().width` within 0.1 CSS px of the recorded Frame width.
+- The image's rendered left and top edges must exactly match the target page canvas's left and top edges; do not center it or offset it with margin, padding, or transforms.
+- Before comparison, verify the width and both left/top edge deltas with `getBoundingClientRect()`; each error must be within 0.1 CSS px.
 - Once the overlay works, the agent must actively fix revealed UI differences and repeat comparison before asking the user to confirm.
 - User confirmation begins only after the pass criteria are met or all remaining differences are quantified and explained.
 - A low pixel mismatch score does not prove that colors are correct; run the numeric color checks too.
