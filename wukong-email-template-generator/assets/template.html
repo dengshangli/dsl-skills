@@ -55,19 +55,30 @@
                         of<!-- --> <span style="font-size:1.125rem;line-height:1.75rem;font-weight:900">395/400 !</span>
                     </p>
                 </div>
-                <div style="text-align:center;margin-top:1rem"><a
-                        href="https://www.trustpilot.com/review/wukongsch.com?utm_medium=Trustbox&amp;utm_source=EmailNewsletter1"
-                        style="color:rgb(10,10,10);vertical-align:middle;font-size:14px;font-weight:500;display:inline-block;text-decoration:none;line-height:20px"
-                        target="_blank">TrustScore</a>  <a
-                        href="https://www.trustpilot.com/review/wukongsch.com?utm_medium=Trustbox&amp;utm_source=EmailNewsletter1"
-                        style="color:rgb(10,10,10);vertical-align:middle;font-size:14px;font-weight:500;display:inline-block;text-decoration:none;height:20px"
-                        target="_blank"><img alt="Trustpilot Stars"
-                            src="https://emailsignature.trustpilot.com/newsletter/en-US/1/60c847b7f033d300019ff3a1/stars@2x.png"
-                            style="display:block;outline:none;border:none;text-decoration:none;height:100% !important" /></a>  <a
-                        th:text="${trustpilot_score}"
-                        href="https://www.trustpilot.com/review/wukongsch.com?utm_medium=Trustbox&amp;utm_source=EmailNewsletter1"
-                        style="color:rgb(10,10,10);vertical-align:middle;font-size:14px;font-weight:500;display:inline-block;text-decoration:none;line-height:20px"
-                        target="_blank">${trustpilot_score}</a></div>
+                <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0"
+                    style="margin:1rem auto 0;border-collapse:collapse">
+                    <tr>
+                        <td align="right" valign="middle"
+                            style="padding:0;color:#0a0a0a;font-size:14px;font-weight:500;line-height:20px;white-space:nowrap">
+                            <a href="https://www.trustpilot.com/review/wukongsch.com?utm_medium=Trustbox&amp;utm_source=EmailNewsletter1"
+                                style="color:#0a0a0a;text-decoration:none" target="_blank">TrustScore</a>
+                        </td>
+                        <td align="center" valign="middle" style="padding:0 8px">
+                            <a href="https://www.trustpilot.com/review/wukongsch.com?utm_medium=Trustbox&amp;utm_source=EmailNewsletter1"
+                                style="display:block;height:20px;text-decoration:none" target="_blank"><img
+                                    alt="Trustpilot Stars"
+                                    src="https://emailsignature.trustpilot.com/newsletter/en-US/1/60c847b7f033d300019ff3a1/stars@2x.png"
+                                    width="100" height="20"
+                                    style="display:block;width:100px;height:20px;outline:0;border:none;text-decoration:none" /></a>
+                        </td>
+                        <td align="left" valign="middle"
+                            style="padding:0;color:#0a0a0a;font-size:14px;font-weight:500;line-height:20px;white-space:nowrap">
+                            <a th:text="${trustpilot_score}"
+                                href="https://www.trustpilot.com/review/wukongsch.com?utm_medium=Trustbox&amp;utm_source=EmailNewsletter1"
+                                style="color:#0a0a0a;text-decoration:none" target="_blank">${trustpilot_score}</a>
+                        </td>
+                    </tr>
+                </table>
             </div>
             <div style="width:640px;background-color:rgb(255,255,255);padding:32px;text-align:center">
                 <div class="text-0" style="text-align:center"><a href="https://www.facebook.com/wukongedu/"
