@@ -1,0 +1,4 @@
+interface:
+  display_name: "Email Compatibility Test"
+  short_description: "Batch-send HTML templates to test inboxes"
+  default_prompt: "Use $email-template-compatibility-test to send the requested local HTML templates to the specified test inboxes and record accepted sends."

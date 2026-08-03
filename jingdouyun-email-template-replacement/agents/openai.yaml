@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jingdouyun Template Replacement"
+  short_description: "Replace existing CRM email template content"
+  default_prompt: "Use $jingdouyun-email-template-replacement to match local HTML files and replace only the 模板内容 field in the existing Jingdouyun templates."

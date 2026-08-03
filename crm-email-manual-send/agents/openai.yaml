@@ -1,0 +1,4 @@
+interface:
+  display_name: "CRM Email Manual Send"
+  short_description: "Send CRM templates and verify follow-up records"
+  default_prompt: "Use $crm-email-manual-send to match local HTML files to CRM templates, send only the requested emails, and verify each follow-up record."
