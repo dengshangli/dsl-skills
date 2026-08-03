@@ -54,6 +54,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - 主页只能增加一段带 `FIGMA_OVERLAY_START/END` 标记的副作用 import，不能直接加入叠图组件或样式。
 - 叠图应提供关闭、透明叠加、差值模式和透明度控制，刷新后仍可继续比较。
 - 叠图图片宽度必须严格等于 Figma Frame 的逻辑宽度，不能使用 body、viewport、父容器、PNG 导出宽度、`100%` 或 `100vw` 代替。
+- 必须从上到下遍历页面内可见元素，找到“源码中明确设置了固定宽度、实际渲染宽度也严格等于 Figma Frame 宽度”的页面级画布元素；body 或 viewport 只是碰巧同宽时不能作为目标。
 - 叠图图片渲染后的左边和上边必须分别与目标页面画布的左边和上边完全对齐；不能居中，也不能通过 margin、padding 或 transform 产生偏移。
 - 比对前必须用 `getBoundingClientRect()` 验证实际渲染宽度及左边/上边差值，每项误差均不得超过 0.1 CSS px。
 - 叠图可用后，AI 必须先根据差异主动调整页面并循环复查，不能立刻要求用户确认。

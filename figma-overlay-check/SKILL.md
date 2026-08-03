@@ -14,6 +14,7 @@ Export one Figma page Frame as PNG. Put the entire comparison overlay implementa
 - Change one existing page-entry file only by adding a marked import for the temporary file.
 - Provide `hidden`, `opacity`, and `difference` modes plus opacity control.
 - Render the overlay image at exactly the Figma Frame's logical width.
+- Find the target page canvas by traversing page elements from top to bottom and selecting the page-level element whose authored fixed width and rendered width exactly match the Figma Frame width.
 - Align the overlay image's rendered left and top edges exactly with the target page canvas's left and top edges.
 - After the overlay works, inspect the revealed differences and actively fix the application UI before asking the user to confirm.
 - Repeat compare → fix → refresh → measure until the pass criteria are met or remaining differences are explicitly explained.
@@ -63,7 +64,7 @@ Prefer a side-effect module using plain DOM APIs so application code needs only 
 3. Restrict itself to the target route when the project has multiple pages.
 4. Create and own the overlay image, scoped styles, controls, event listeners, local state, and any animation-free comparison state.
 5. Wait for `document.fonts.ready` before visual measurement.
-6. Identify the page canvas element that corresponds to the Figma Frame, append the overlay root directly to `document.body`, and use document-space `position: absolute` coordinates so the design image's rendered left/top edges exactly match that page canvas's rendered left/top edges. Use a maximum z-index and `pointer-events: none`; do not center the image or offset it with margin, padding, or transforms.
+6. Traverse visible application elements in DOM order from top to bottom, excluding `html`, `body`, and overlay-owned nodes. Select the first page-level element that contains the Figma page content, has an authored fixed CSS width exactly equal to the Figma Frame logical width, and renders at that width within 0.1 CSS px. Do not select an element whose matching width is only caused by `auto`, `100%`, `100vw`, flex/grid stretching, or coincidence with the viewport. Append the overlay root directly to `document.body`, and use document-space `position: absolute` coordinates so the design image's rendered left/top edges exactly match the selected element's rendered left/top edges. Use a maximum z-index and `pointer-events: none`; do not center the image or offset it with margin, padding, or transforms.
 7. Set the image width to the exact numeric Figma Frame logical width in CSS pixels, for example `image.style.width = String(figmaFrameWidth) + 'px'`; use `height: auto` and `max-width: none`.
 8. Keep the control panel interactive and persist mode/opacity in `localStorage` when practical.
 9. Use stable overlay-specific IDs or data attributes and avoid modifying application components or global styles outside this temporary file.
@@ -103,13 +104,45 @@ Do not create or modify `.gitignore` entries for the temporary source file, stat
 
 Set the viewport width to the Frame's logical width. Confirm `document.body.scrollHeight` is within a few pixels of its logical height. Fix structural spacing first when the user authorized UI fixes.
 
-At the page's initial scroll position, verify the rendered overlay width and origin numerically before comparing anything else. Replace `#page-canvas` with the actual element representing the Figma page Frame; use `document.body` only when the body itself is that page canvas:
+Discover page-canvas candidates before positioning the overlay. `querySelectorAll()` returns elements in document order, so this inspection proceeds from the top of the page downward:
+
+```javascript
+() => {
+  const figmaFrameWidth = 1400; // Replace with Figma metadata.
+  return [...document.body.querySelectorAll('*')]
+    .filter((element) => !element.closest('[data-figma-overlay-root]'))
+    .map((element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return { element, rect, style };
+    })
+    .filter(({ rect, style }) =>
+      style.display !== 'none' &&
+      style.visibility !== 'hidden' &&
+      rect.height > 0 &&
+      Math.abs(rect.width - figmaFrameWidth) <= 0.1
+    )
+    .map(({ element, rect, style }) => ({
+      tag: element.tagName.toLowerCase(),
+      id: element.id,
+      className: element.className,
+      computedWidth: style.width,
+      left: rect.left,
+      top: rect.top,
+      height: rect.height,
+    }));
+}
+```
+
+Inspect the candidates and their application source styles in that order. Choose the first page-level wrapper with an explicit fixed width equal to `figmaFrameWidth` that contains the relevant full-page content. A computed width match alone is insufficient. Never fall back to `body` or the viewport merely because its current rendered width happens to match. If no qualifying element exists, report the missing fixed-width page canvas and resolve that geometry before placing the overlay.
+
+At the page's initial scroll position, verify the rendered overlay width and origin numerically before comparing anything else. Replace `#selected-page-canvas` with a stable selector for the qualifying element found above:
 
 ```javascript
 () => {
   const image = document.querySelector('[data-figma-overlay-image]');
-  const page = document.querySelector('#page-canvas') ?? document.body;
-  if (!image) return null;
+  const page = document.querySelector('#selected-page-canvas');
+  if (!image || !page) return null;
   const imageRect = image.getBoundingClientRect();
   const pageRect = page.getBoundingClientRect();
   return {
@@ -253,6 +286,7 @@ At handoff, summarize the UI fixes and final comparison result, list the tempora
 - Modify an existing page-entry file only with one marked side-effect import.
 - Keep all comparison-only implementation details inside the temporary file.
 - Use the Figma Frame logical width as the overlay image's exact CSS width; never substitute viewport, body, parent, PNG, or screenshot width.
+- Traverse application elements from top to bottom and select only a page-level element whose authored fixed width and rendered width equal the Figma Frame logical width; never infer the canvas from a coincidental `body` or viewport match.
 - Align the overlay image's left/top edges exactly with the target page canvas's left/top edges; never center it or introduce margin, padding, or transform offsets.
 - Verify the rendered width and left/top deltas with `getBoundingClientRect()` before visual comparison; width error and each edge delta must not exceed 0.1 CSS px.
 - Record the temporary file, image, import block, and artifacts in the v3 manifest.
