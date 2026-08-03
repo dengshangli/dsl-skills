@@ -61,6 +61,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - 较低的像素差异比例不能证明颜色完全正确，还必须执行数值颜色检查。
 - 动态内容、动画、Web 字体、视口尺寸、设备像素比和色彩配置都可能制造假差异。
 - 正常调用本 Skill 包含 UI 修复；只有用户明确要求“仅检查/仅报告”时才不修改页面。
+- AI 完成叠图问题修正后，必须明确提示用户在最终确认页面后调用 `$figma-overlay-cleanup` 删除叠图。
 - 检查完成后会保留临时文件、图片和主页 import，直到运行 `$figma-overlay-cleanup`。
 - `.figma-overlay-state.json` 会精确记录这三项；清理时只移除它们和比对产物。
 - 不要把叠图相关临时文件或路径添加到 `.gitignore`，也不要为此修改 `.gitignore`；后续统一由 `$figma-overlay-cleanup` 删除。

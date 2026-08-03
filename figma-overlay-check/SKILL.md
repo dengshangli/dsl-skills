@@ -18,6 +18,7 @@ Export one Figma page Frame as PNG. Put the entire comparison overlay implementa
 - After the overlay works, inspect the revealed differences and actively fix the application UI before asking the user to confirm.
 - Repeat compare → fix → refresh → measure until the pass criteria are met or remaining differences are explicitly explained.
 - Do not add overlay-related files or paths to `.gitignore`; leave them visible for `$figma-overlay-cleanup` to remove.
+- After completing overlay-guided UI fixes, explicitly prompt the user to invoke `$figma-overlay-cleanup` after their final visual confirmation.
 - Keep the overlay active at handoff. Do not commit comparison-only files unless explicitly requested.
 
 ## Workflow
@@ -233,7 +234,7 @@ Enter handoff only after completing the AI correction loop. Verify a refresh pre
 
 Require `temporarySourcePath` to identify the one newly created overlay source file. Require the `entryImport` marker block to contain only the import matching `importedPath`. Read an existing manifest before replacement and confirm its canonical `projectRoot` matches.
 
-At handoff, summarize the UI fixes and final comparison result, list the temporary file, image, and page-entry import, then ask the user to perform the final visual confirmation. Leave the overlay active and tell the user that `$figma-overlay-cleanup` will remove those three things plus recorded artifacts and the manifest while preserving UI fixes.
+At handoff, summarize the UI fixes and final comparison result, list the temporary file, image, and page-entry import, then ask the user to perform the final visual confirmation. Leave the overlay active. If the AI correction loop changed the application UI, explicitly instruct the user: "The overlay issues have been adjusted and verified. After confirming the page, invoke `$figma-overlay-cleanup` to remove the overlay." Do not merely describe cleanup as optional or available. Explain that the cleanup skill removes the temporary source file, static image, marked import, recorded artifacts, and manifest while preserving UI fixes.
 
 ## Frequent diff causes
 
@@ -257,5 +258,6 @@ At handoff, summarize the UI fixes and final comparison result, list the tempora
 - Record the temporary file, image, import block, and artifacts in the v3 manifest.
 - Do not add overlay-related files or paths to `.gitignore`, and do not modify `.gitignore` for this workflow; rely on `$figma-overlay-cleanup` to delete them.
 - Complete the AI correction loop before asking the user for final confirmation.
+- After overlay-guided UI fixes are complete, explicitly prompt the user to invoke `$figma-overlay-cleanup` after final visual confirmation; mentioning cleanup without a direct instruction is insufficient.
 - Compare one page-level Frame at a time.
 - Do not commit comparison-only files unless explicitly requested.
