@@ -21,12 +21,14 @@ The generated file at `OUTPUT` is the only deliverable. Exactly one new `.html` 
 
 1. Design only the requested email body as an HTML fragment. Use email-compatible markup, tables where layout requires them, inline CSS, absolute image URLs, and the user's required template variables.
 2. Create the intermediate body fragment inside a dedicated system temporary directory, outside the user's open directory, and give it a `.txt` suffix such as `body-fragment.txt`. Never save the body fragment with an `.html` suffix. Do not include `<html>`, `<head>`, or `<body>` wrappers.
-3. Change to the user's current open directory. Run this exact installed generator:
+3. Resolve the directory containing this `SKILL.md`, then change to the user's current open directory. Run the bundled generator from that resolved skill directory:
 
    ```bash
-   python3 /Users/dengshangli/.codex/skills/wukong-email-template-generator/scripts/generate_email.py \
+   python3 <skill-directory>/scripts/generate_email.py \
      --body-file <system-temp-dir>/body-fragment.txt
    ```
+
+   Never assume the author's home directory or a fixed installation path. The resolved generator path must belong to this installed Skill.
 
    This defaults to a new timestamped HTML file in the current directory. If the user explicitly requests a filename or directory, add `--output <new-path.html>`.
 4. Require exit code `0`, `GENERATOR_EXECUTED=YES`, and an `OUTPUT=` path.

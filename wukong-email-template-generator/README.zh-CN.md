@@ -26,13 +26,7 @@
 - 可写的输出目录。
 - 兼容邮件客户端的正文：保守 HTML、内联样式、绝对图片地址且不使用 JavaScript。
 
-当前 [SKILL.md](./SKILL.md) 包含作者本机的绝对安装路径：
-
-```text
-/Users/dengshangli/.codex/skills/wukong-email-template-generator/scripts/generate_email.py
-```
-
-其他用户必须将该路径替换为生成器的实际安装位置。本次文档更新不会修改 Skill 实现。
+技能会相对于自身安装后的 `SKILL.md` 定位 `scripts/generate_email.py`，因此不同用户和不同安装目录无需手动修改路径。
 
 ## 安装
 

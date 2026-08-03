@@ -21,6 +21,13 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("Do not report completion", instructions)
         self.assertIn("GENERATOR_EXECUTED=YES", instructions)
 
+    def test_skill_uses_a_portable_generator_path(self):
+        instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+
+        self.assertIn("<skill-directory>/scripts/generate_email.py", instructions)
+        self.assertIn("Never assume the author's home directory", instructions)
+        self.assertNotIn("/Users/dengshangli/", instructions)
+
     def test_body_fragment_cannot_be_a_second_html_deliverable(self):
         instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
 

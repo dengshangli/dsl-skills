@@ -26,13 +26,7 @@ An Agent Skill for creating WuKong-branded HTML emails with a fixed, reusable em
 - A writable output directory.
 - Email-compatible body markup: conservative HTML, inline styles, absolute image URLs, and no JavaScript.
 
-The current [SKILL.md](./SKILL.md) contains the author's absolute installed path:
-
-```text
-/Users/dengshangli/.codex/skills/wukong-email-template-generator/scripts/generate_email.py
-```
-
-Other users must replace that path with the generator's actual installed location. This documentation update does not change the Skill implementation.
+The skill resolves `scripts/generate_email.py` relative to its own installed `SKILL.md`, so it works from different user accounts and installation directories without path edits.
 
 ## Install
 
