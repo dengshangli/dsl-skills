@@ -1,111 +1,108 @@
 ---
 name: figma-overlay-check
-description: Verify and improve web UI fidelity against a Figma design by exporting a page-level Frame, implementing a persistent comparison overlay in the project's source code, locating visual differences, editing the UI when authorized, and quantifying the result. Use for pixel-perfect walkthroughs or when the user mentions "overlay comparison", "design diff", "visual QA", "还原度", "叠图比对", or asks to keep an overlay in code for repeated comparison. Requires a locally runnable web project, Figma MCP, and browser automation.
+description: Verify and improve web UI fidelity against a Figma design by exporting a page-level Frame, placing all persistent overlay logic in one temporary source file, importing it once from the page entry, actively fixing overlay-revealed UI differences through repeated comparison, and handing off only after the fixes are verified for user confirmation. Use for pixel-perfect walkthroughs or when the user mentions "overlay comparison", "design diff", "visual QA", "还原度", "叠图比对", or asks for a low-intrusion overlay that can be removed cleanly. Requires a locally runnable web project, Figma MCP, and browser automation.
 ---
 
 # Figma Overlay Fidelity Check
 
-Export the Figma design as a PNG and implement the overlay **in the target project's source code**. The overlay must survive refreshes and remain available for the user to compare manually. Browser evaluation may inspect and control the page, but must not be the primary overlay implementation.
+Export one Figma page Frame as PNG. Put the entire comparison overlay implementation in **one temporary source file**, then add **one marked side-effect import** to the browser-executed page entry. The overlay must survive refreshes and remain until `$figma-overlay-cleanup` removes the temporary file, image, and import.
 
 ## Required outcome
 
-- Add a small, isolated overlay module or component using the project's native framework.
-- Mount it on the compared route and serve the exported design image from the project's static assets.
-- Provide `hidden`, `opacity`, and `difference` modes plus an opacity control.
-- Keep the overlay code and image in the project at handoff unless the user explicitly asks to remove them.
-- Keep it mounted and available until the user runs `$figma-overlay-cleanup`. Do not commit it unless the user explicitly asks.
+- Create exactly one temporary overlay source file.
+- Keep all overlay DOM, styles, controls, state, route checks, and listeners in that file.
+- Change one existing page-entry file only by adding a marked import for the temporary file.
+- Provide `hidden`, `opacity`, and `difference` modes plus opacity control.
+- After the overlay works, inspect the revealed differences and actively fix the application UI before asking the user to confirm.
+- Repeat compare → fix → refresh → measure until the pass criteria are met or remaining differences are explicitly explained.
+- Keep the overlay active at handoff. Do not commit comparison-only files unless explicitly requested.
 
 ## Workflow
 
 ```text
 Task Progress:
-- [ ] Step 1: Export the page-level design Frame
-- [ ] Step 2: Inspect the project and implement the source-backed overlay
+- [ ] Step 1: Export the page-level Figma Frame
+- [ ] Step 2: Create one temporary overlay file and import it once
 - [ ] Step 3: Align viewport, page height, and overlay geometry
-- [ ] Step 4: Locate and fix differences
+- [ ] Step 4: Run the AI correction loop on overlay-revealed differences
 - [ ] Step 5: Verify colors numerically
 - [ ] Step 6: Quantify with pixel diff
-- [ ] Step 7: Leave the code overlay ready for manual review
+- [ ] Step 7: Record v3 cleanup state and leave the overlay active
 ```
 
 ### Step 1: Export the design
 
-Use Figma MCP `download_assets` with PNG output to export one page-level Frame. Record its logical width and height. Copy the exported image into an overlay-specific static path such as:
+Use Figma MCP `download_assets` with PNG output to export one page-level Frame. Record its logical width and height. Copy it to one overlay-specific static path, for example:
 
 ```text
-<project>/public/__figma_overlay__/design.png
+<project>/public/__figma_overlay__.png
 ```
 
-Adapt the static directory to the framework. Do not overwrite an application asset.
+Adapt the static directory to the framework and do not overwrite an application asset.
 
-Figma caps exports at 4096 px on the long edge, so long pages may be proportionally downscaled. Confirm the actual PNG size with `file` or `sips`; render it at the Frame's logical CSS width rather than its exported pixel width.
+Figma caps exports at 4096 px on the long edge. Confirm the exported PNG size with `file` or `sips`; render it at the Frame's logical CSS width rather than its exported pixel width.
 
-### Step 2: Implement the overlay in project code
+### Step 2: Create one temporary overlay file and import it once
 
-Inspect the framework, route structure, server conventions, and existing styling approach before editing. Prefer a dedicated source location such as:
+Identify the browser-executed entry for the target page. Create exactly one temporary source file next to or near that entry, for example:
 
 ```text
-src/figma-overlay/
+src/__figma_overlay__.ts
 ```
 
-Implement the overlay with the project's native component model. Keep the integration small and clearly marked. The implementation must:
+Prefer a side-effect module using plain DOM APIs so application code needs only an import. The temporary file must:
 
-1. Render whenever the target route is opened and remain mounted until cleanup.
-2. Render only on the target route when the project has multiple pages.
-3. Use a document-level absolute overlay anchored at `top: 0; left: 0`, with the Frame's logical width and a maximum z-index.
-4. Set the design image to `pointer-events: none`, while keeping the control panel interactive.
-5. Support these modes:
-   - `hidden`: application only
-   - `opacity`: design at adjustable opacity, default `0.5`
-   - `difference`: design at opacity `1` with `mix-blend-mode: difference`
-6. Include a compact fixed control panel or equivalent keyboard controls so the user can switch modes without editing code. Persist mode and opacity in `localStorage` when practical.
-7. Scope every overlay style to the overlay component. Do not change global application styling merely to host the overlay.
-8. Wait for fonts before visual measurement. Disable animations only while comparison is active, using a reversible class or data attribute owned by the overlay module.
+1. Guard browser APIs with `typeof document !== 'undefined'` if the framework may evaluate modules during server rendering.
+2. Initialize idempotently after the document body is ready.
+3. Restrict itself to the target route when the project has multiple pages.
+4. Create and own the overlay image, scoped styles, controls, event listeners, local state, and any animation-free comparison state.
+5. Wait for `document.fonts.ready` before visual measurement.
+6. Anchor the design image at document `top: 0; left: 0` with `position: absolute`, the Frame's logical width, a maximum z-index, and `pointer-events: none`.
+7. Keep the control panel interactive and persist mode/opacity in `localStorage` when practical.
+8. Use stable overlay-specific IDs or data attributes and avoid modifying application components or global styles outside this temporary file.
 
-Use obvious markers around the minimal mount/import edit so the temporary integration is easy to find later:
+Support:
 
-```text
-FIGMA_OVERLAY_START
-FIGMA_OVERLAY_END
+- `hidden`: application only
+- `opacity`: adjustable opacity, default `0.5`
+- `difference`: opacity `1` with `mix-blend-mode: difference`
+
+Add only this block to the page entry, adapted to the real relative path:
+
+```javascript
+// FIGMA_OVERLAY_START
+import './__figma_overlay__';
+// FIGMA_OVERLAY_END
 ```
 
-For React-like projects, the rendered structure should be equivalent to:
+The marker block must contain only that import and comments. Do not put overlay JSX, components, styles, configuration, route logic, mount calls, or listeners in the page entry. Do not create additional overlay source files.
 
-```jsx
-<div data-figma-overlay-root data-mode={mode}>
-  <img
-    src="/__figma_overlay__/design.png"
-    alt=""
-    style={{
-      position: 'absolute',
-      inset: '0 auto auto 0',
-      width: 1400,
-      maxWidth: 'none',
-      zIndex: 2147483646,
-      pointerEvents: 'none',
-      opacity: mode === 'opacity' ? opacity : mode === 'difference' ? 1 : 0,
-      mixBlendMode: mode === 'difference' ? 'difference' : 'normal',
-    }}
-  />
-  <OverlayControls />
-</div>
+If imports must appear before other statements, put the marked block in the import section. If the named main page is server-only, use its nearest browser-executed client entry; still make the import block the only change required to host the overlay.
+
+The temporary file should behave like this:
+
+```javascript
+if (typeof document !== 'undefined' && !document.querySelector('[data-figma-overlay-root]')) {
+  // Wait for body/fonts, then create the image, scoped styles, and controls.
+  // Keep every comparison-only implementation detail in this file.
+}
 ```
 
-This is a behavior contract, not a file to copy blindly. Match the target project's language and conventions. Do not use `browser_evaluate` to create the overlay DOM as a substitute for source changes.
+Browser evaluation may measure or operate the page, but must not inject the overlay as a substitute for this temporary file.
 
 ### Step 3: Align viewport and geometry
 
-Set the browser viewport width to the Frame's logical width. Confirm `document.body.scrollHeight` is within a few pixels of the design's logical height. A large gap indicates structural spacing or height errors; fix those before pixel-level work when the user authorized UI fixes.
+Set the viewport width to the Frame's logical width. Confirm `document.body.scrollHeight` is within a few pixels of its logical height. Fix structural spacing first when the user authorized UI fixes.
 
-Use the code-backed controls to compare:
+Use the source-backed controls:
 
-- `opacity`: coarse alignment and section drift
-- `difference`: fine alignment; blacker areas are closer, bright outlines indicate geometry offsets, and ghosted text often indicates typography mismatch
-- `hidden`: clean screenshots and normal interaction
+- `opacity` for coarse alignment
+- `difference` for fine alignment; bright outlines indicate geometry offsets and ghosted text often indicates typography mismatch
+- `hidden` for clean screenshots and normal interaction
 
-If dynamic content creates noise, pause videos and pin carousels or dates through deterministic comparison fixtures when safe. Keep such comparison-only behavior isolated and recorded for cleanup.
+Keep any deterministic carousel/date/video comparison behavior inside the same temporary source file.
 
-Difference mode can hide subtle color drift. Use `scripts/amplify.mjs` to brighten near-black residue when useful:
+Difference mode can hide subtle color drift. Brighten near-black residue when useful:
 
 ```bash
 node <path-to-this-skill>/scripts/amplify.mjs difference-shot.png amplified.png
@@ -113,13 +110,26 @@ node <path-to-this-skill>/scripts/amplify.mjs difference-shot.png amplified.png
 
 ### Step 4: Locate and fix differences
 
-Run the pixel diff early to identify the highest-severity `x/y/w/h` regions. Crop suspicious regions instead of scanning a full-page screenshot:
+Once the overlay is working, **do not hand off for user review yet**. Treat the visible differences as the input to an active correction pass. Inspect, edit the application UI, refresh, and compare again before asking the user to confirm.
+
+Use this loop:
+
+1. Identify the largest structural differences first: page height, section position, width, spacing, and image geometry.
+2. Edit the relevant application source files to correct those differences.
+3. Refresh; use `opacity` and `difference` modes to verify the change.
+4. Measure DOM geometry and run pixel diffing to locate the next highest-impact region.
+5. Fix typography and colors after structural geometry is stable.
+6. Repeat until the pass criteria in Step 6 are met or every remaining difference is quantified and explained.
+
+Do not ask the user to inspect an obviously mismatched page that the agent can still improve. User confirmation comes after this correction loop.
+
+Run pixel diffing early to identify severe `x/y/w/h` regions, then crop them:
 
 ```bash
 node <path-to-this-skill>/scripts/crop.mjs diff.png <x> <y> <w> <h> out.png
 ```
 
-Use browser evaluation for measurement, not overlay injection:
+Use browser evaluation for measurements, not overlay injection:
 
 ```javascript
 () => [...document.querySelectorAll('h2,h3')].map((element) => {
@@ -134,67 +144,57 @@ Use browser evaluation for measurement, not overlay injection:
 })
 ```
 
-Compare these values with Figma node coordinates. After each authorized fix, refresh and use the persistent overlay controls again; no reinjection should be necessary.
+Compare these values with Figma node coordinates. After each fix, refresh and use the persistent controls again.
 
-If the user requested review only, add the requested comparison overlay but do not modify application UI implementation to fix discrepancies. Report the measured differences instead.
+Only skip UI edits when the user explicitly requests a review-only or report-only result. A normal request to use this skill includes the correction loop.
 
 ### Step 5: Verify colors numerically
 
-Read exact Figma colors through `get_variable_defs` or `get_design_context`, then compare them with browser computed styles for text, backgrounds, borders, and default states. Do not rely on difference blending alone.
+Read exact Figma colors through `get_variable_defs` or `get_design_context`, then compare them with browser computed styles. Check text, backgrounds, borders, and default states.
 
-For gradients, shadows, and images, sample matching coordinates with:
+For gradients, shadows, and images, sample matching coordinates:
 
 ```bash
 node <path-to-this-skill>/scripts/color-sample.mjs design.png page.png 700,120 200,800 --size=8
 ```
 
-The script reports both colors and perceptual ΔE. As a guide: ΔE below 1 is effectively identical, 1–2.3 is barely perceptible, and above 2.3 usually warrants investigation. Sample solid interiors rather than anti-aliased edges.
+As a guide, ΔE below 1 is effectively identical, 1–2.3 is barely perceptible, and above 2.3 warrants investigation. Sample solid interiors, not anti-aliased edges.
 
-On macOS, a headed browser may capture Display P3 while Figma exports sRGB. If colors show a small uniform shift, relaunch with `--force-color-profile=srgb` before changing CSS.
+If macOS screenshots show a small uniform color shift, relaunch the browser with `--force-color-profile=srgb` before changing CSS.
 
 ### Step 6: Quantify with pixel diff
 
-Switch the source-backed overlay to `hidden`, hide its control panel if necessary, and capture a clean full-page screenshot. Then compare:
+Switch the overlay to `hidden`, hide its controls, and capture a clean full-page screenshot:
 
 ```bash
 cd /tmp/figma-overlay && npm init -y && npm i pixelmatch pngjs
 node <path-to-this-skill>/scripts/pixel-diff.mjs design.png page.png diff.png
 ```
 
-The script resamples differing widths and reports overall mismatch plus the highest-severity regions. A practical pass requires mismatch below 2%, no unexplained solid mismatch regions, and a successful numeric color check.
+The script resamples differing widths and reports mismatch percentage plus severe regions. A practical pass requires mismatch below 2%, no unexplained solid mismatch regions, and a successful numeric color check.
 
-After quantification, restore the overlay to the user's preferred review mode. Do not remove its source code or static image.
+If the result does not pass, return to Step 4 and continue fixing. Quantification is a loop gate, not the end of the task.
 
-### Step 7: Leave the code overlay ready for manual review
+Restore `opacity` or `difference` mode after quantification.
 
-Before finishing:
+### Step 7: Record cleanup state and hand off
 
-1. Refresh the page and verify the overlay still works without browser-side reinjection.
-2. Verify all three modes and the opacity control.
-3. List the exact source, integration, and image files added or modified.
-4. Leave the page in `opacity` or `difference` mode for immediate manual review.
-5. Tell the user the overlay is intentionally implemented in project code and remains available after refresh.
-6. Tell the user it stays mounted until `$figma-overlay-cleanup` removes it and has not been committed unless they requested a commit.
-
-Create `<project-root>/.figma-overlay-state.json` as a cleanup allowlist:
+Enter handoff only after completing the AI correction loop. Verify a refresh preserves the overlay, all modes work, the final pixel/color checks are recorded, and remaining differences are explained. Then create `<project-root>/.figma-overlay-state.json`:
 
 ```json
 {
-  "version": 2,
+  "version": 3,
   "projectRoot": "/absolute/path/to/project",
   "pageUrl": "http://localhost:3000/page",
-  "staticImagePath": "/absolute/path/to/project/public/__figma_overlay__/design.png",
+  "staticImagePath": "/absolute/path/to/project/public/__figma_overlay__.png",
   "downloadedImagePath": "/tmp/figma-overlay/design.png",
-  "generatedSourcePaths": [
-    "/absolute/path/to/project/src/figma-overlay/FigmaOverlay.tsx"
-  ],
-  "integrationBlocks": [
-    {
-      "path": "/absolute/path/to/project/src/App.tsx",
-      "startMarker": "FIGMA_OVERLAY_START",
-      "endMarker": "FIGMA_OVERLAY_END"
-    }
-  ],
+  "temporarySourcePath": "/absolute/path/to/project/src/__figma_overlay__.ts",
+  "entryImport": {
+    "path": "/absolute/path/to/project/src/main.ts",
+    "importedPath": "./__figma_overlay__",
+    "startMarker": "FIGMA_OVERLAY_START",
+    "endMarker": "FIGMA_OVERLAY_END"
+  },
   "artifactPaths": [
     "/tmp/figma-overlay/page.png",
     "/tmp/figma-overlay/diff.png"
@@ -202,26 +202,27 @@ Create `<project-root>/.figma-overlay-state.json` as a cleanup allowlist:
 }
 ```
 
-Record only exact overlay-specific regular files in `generatedSourcePaths`. Record existing application files only in `integrationBlocks`; never classify them as generated files. Each integration file must contain exactly one unambiguous marker pair. Use `null` or an empty array for fields that do not apply. Read an existing manifest before replacement and confirm its canonical `projectRoot` matches.
+Require `temporarySourcePath` to identify the one newly created overlay source file. Require the `entryImport` marker block to contain only the import matching `importedPath`. Read an existing manifest before replacement and confirm its canonical `projectRoot` matches.
 
-Do not automatically remove the overlay at task completion. Tell the user they can invoke `$figma-overlay-cleanup` or reply “删除叠图” after review. Cleanup must delete only the dedicated overlay files, image, manifest, and marked integration blocks while preserving all UI fidelity fixes.
+At handoff, summarize the UI fixes and final comparison result, list the temporary file, image, and page-entry import, then ask the user to perform the final visual confirmation. Leave the overlay active and tell the user that `$figma-overlay-cleanup` will remove those three things plus recorded artifacts and the manifest while preserving UI fixes.
 
 ## Frequent diff causes
 
 | Symptom | Likely cause | Typical fix |
 |---|---|---|
-| Text ghosts drift line by line | Browser line-height differs from Figma | Set the measured line-height explicitly |
-| Photos produce bright blocks | `object-cover` crop differs from Figma geometry | Match image position and dimensions |
-| Buttons or cards are a few pixels too tall | CSS border changes box size | Adjust padding or box sizing |
-| A whole section is shifted | Missing or extra padding, gap, or spacer | Compare DOM and Figma coordinates |
-| Colors look matched in difference mode but feel wrong | Small RGB deltas render near-black | Compare computed colors and ΔE |
-| Every color is slightly off | Display P3 screenshot versus sRGB export | Force the browser color profile to sRGB |
+| Text ghosts drift line by line | Browser line-height differs from Figma | Set measured line-height explicitly |
+| Photos produce bright blocks | Crop differs from Figma geometry | Match image position and dimensions |
+| Buttons/cards are a few pixels too tall | CSS border changes box size | Adjust padding or box sizing |
+| A whole section is shifted | Missing/extra padding, gap, or spacer | Compare DOM and Figma coordinates |
+| Colors look matched but feel wrong | Small RGB deltas render near-black | Compare computed colors and ΔE |
+| Every color is slightly off | Display P3 screenshot versus sRGB export | Force sRGB browser screenshots |
 
 ## Rules
 
-- Write the comparison overlay into project source; runtime-only DOM injection does not satisfy this skill.
-- Keep overlay code isolated, refresh-persistent, and easy to remove through `$figma-overlay-cleanup`.
-- Record every comparison-only source edit and file in the v2 cleanup manifest.
-- Compare one page-level Frame at a time, never the whole Figma canvas.
-- Anchor long-page overlays absolutely to the top of the document so they scroll with the page.
-- Do not commit comparison-only code or assets unless the user explicitly requests it.
+- Create exactly one temporary overlay source file and one static design image.
+- Modify an existing page-entry file only with one marked side-effect import.
+- Keep all comparison-only implementation details inside the temporary file.
+- Record the temporary file, image, import block, and artifacts in the v3 manifest.
+- Complete the AI correction loop before asking the user for final confirmation.
+- Compare one page-level Frame at a time.
+- Do not commit comparison-only files unless explicitly requested.

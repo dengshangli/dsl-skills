@@ -1,11 +1,11 @@
 ---
 name: figma-overlay-cleanup
-description: Safely remove a Figma comparison overlay preserved by figma-overlay-check, including a source-backed persistent overlay, its marked integration blocks, static design image, temporary artifacts, state manifest, or a legacy runtime overlay, without reverting UI fidelity fixes. Use only when the user explicitly says "删除叠图", "移除叠图", "清理叠图", "删除比对图片", "remove overlay", or otherwise clearly asks to remove a preserved Figma overlay.
+description: Safely remove a Figma comparison overlay preserved by figma-overlay-check by deleting its one temporary overlay source file, static design image, recorded artifacts and manifest, and removing only its marked import from the page entry, without reverting UI fidelity fixes. Also supports legacy v2 source overlays and v1 runtime overlays. Use only when the user explicitly says "删除叠图", "移除叠图", "清理叠图", "删除比对图片", "remove overlay", or otherwise clearly asks to remove a preserved Figma overlay.
 ---
 
 # Figma Overlay Cleanup
 
-Remove only comparison artifacts recorded by `$figma-overlay-check`. Treat the user's explicit cleanup request as authorization to remove the overlay implementation, not as authorization to revert UI fidelity fixes.
+Remove only comparison artifacts recorded by `$figma-overlay-check`. For a current v3 overlay, clean up exactly three project changes: the marked page-entry import, the one temporary source file, and the one static design image. Preserve every UI fidelity fix.
 
 ## Workflow
 
@@ -19,69 +19,76 @@ Resolve the canonical project root and read only:
 
 Require `projectRoot` to equal the canonical project root. Support:
 
-- version 2: source-backed overlay
+- version 3: single temporary source file plus one marked page-entry import
+- version 2: legacy source-backed overlay with generated files and integration blocks
 - version 1: legacy runtime-injected overlay
 
-Stop and ask the user if the manifest is missing, invalid, belongs to another project, uses an unsupported version, or contains an unsafe or ambiguous path. Do not guess paths or infer permission to remove unrecorded files.
+Stop if the manifest is missing, invalid, belongs to another project, uses an unsupported version, or contains an unsafe path. Do not guess paths or remove unrecorded files.
 
-For every version, validate that `staticImagePath`, `downloadedImagePath`, and each `artifactPaths` item is an exact file path. Project paths must resolve inside `projectRoot`; temporary paths must resolve under `/tmp/figma-overlay`. Reject directories, broad paths, wildcards, and ordinary application assets.
+For all versions, validate `staticImagePath`, `downloadedImagePath`, and every `artifactPaths` item as exact file paths. Project paths must resolve inside `projectRoot`; temporary paths must resolve under `/tmp/figma-overlay`. Reject directories, broad paths, wildcards, and ordinary application assets.
 
-For version 2, additionally validate:
+For version 3, require:
 
-- every `generatedSourcePaths` item resolves inside `projectRoot`, names an overlay-specific file, and is not an existing application file reused for integration
-- every `integrationBlocks` item has an exact project file path plus `FIGMA_OVERLAY_START` and `FIGMA_OVERLAY_END` markers
-- each integration file contains exactly one start marker and one end marker in the correct order
-- the marked block is limited to overlay imports, mounts, configuration, or comments; stop if it includes ordinary application behavior
-- no path appears in both `generatedSourcePaths` and `integrationBlocks`
+- `temporarySourcePath` resolves inside `projectRoot`, names one overlay-specific regular file, and is not the page-entry file
+- `entryImport.path` resolves inside `projectRoot` and names an existing application source file
+- `entryImport.startMarker` and `entryImport.endMarker` are exactly `FIGMA_OVERLAY_START` and `FIGMA_OVERLAY_END`
+- the entry file contains exactly one marker pair in the correct order
+- the marked block contains only comments and one side-effect import matching `entryImport.importedPath`
+- the import resolves to `temporarySourcePath`
 
-For version 1, validate the recorded element and style IDs exactly as the legacy manifest specifies.
+If the marked block contains JSX, component mounting, styles, configuration, route logic, or application behavior, stop and ask the user instead of deleting it.
 
-### 2. Remove source integration for version 2
+For version 2, require every `generatedSourcePaths` item to be an overlay-specific file inside `projectRoot`, and every `integrationBlocks` item to name an existing project file with exactly one ordered marker pair. Reject blocks containing ordinary application behavior and reject paths appearing in both fields. For version 1, validate the recorded runtime element/style IDs exactly.
 
-Inspect each integration file immediately before editing. Use `apply_patch` to remove the complete marker-delimited block, including the marker lines, while preserving all surrounding code. Do not rewrite or reformat unrelated content.
+### 2. Remove the page-entry import
 
-After each edit:
+For version 3, inspect `entryImport.path` immediately before editing. Use `apply_patch` to remove the complete marker block, including both marker lines and the one import. Preserve all surrounding code and formatting.
 
-- confirm both markers are absent
-- inspect the diff to ensure only the recorded overlay block was removed
-- run the narrowest available syntax, type, or build check for the touched file when practical
+Confirm:
 
-If the block is missing, duplicated, changed beyond recognition, or entangled with application behavior, stop before deleting any source or image files and ask the user how to proceed.
+- the import and both markers are absent
+- the temporary source file is no longer referenced by project source
+- the diff changes only the recorded import block
 
-### 3. Remove dedicated overlay files
+Run the narrowest available syntax, type, or build check for the entry file when practical. If the block is missing, duplicated, changed, or ambiguous, stop before deleting any files.
 
-Delete only validated paths, using exact quoted paths and non-recursive operations, in this order:
+For version 2, remove only each validated marker-delimited integration block according to the legacy manifest. Version 1 has no source import to edit.
 
-1. version 2 `generatedSourcePaths`
+### 3. Delete the temporary file, image, and artifacts
+
+After the entry import is safely removed, delete only validated regular files or symlinks using exact paths and non-recursive operations:
+
+1. version 3 `temporarySourcePath` (or version 2 recorded generated overlay files)
 2. `staticImagePath`
 3. `downloadedImagePath`
 4. every `artifactPaths` entry
 
-Inspect each path immediately before deletion. Delete only regular files or symlinks. Do not delete directories, use wildcards, or remove files merely because their names look related. Leave empty directories in place unless the user explicitly asks to remove them and they are verified overlay-only directories.
+Do not delete directories, use wildcards, or remove similarly named unrecorded files. Leave empty directories in place unless the user explicitly requests their removal and they are verified overlay-only directories.
 
-### 4. Clear the browser overlay
+### 4. Verify the page
 
-For version 2, refresh the recorded `pageUrl` when available and verify the code-backed overlay no longer renders.
+For version 3 or 2, refresh `pageUrl` when available and verify the overlay no longer renders and the application still loads.
 
-For version 1, remove only the recorded runtime element and style, then verify they are absent. A refresh may already have removed them; absence is a successful no-op.
+For version 1, remove only the recorded runtime element and style, then verify they are absent. Their prior absence is a successful no-op.
 
-If the page is unavailable, continue only with already validated file cleanup and report that browser verification could not be performed.
+If the page is unavailable, report that browser verification could not be completed.
 
-### 5. Remove the manifest and report
+### 5. Delete the manifest and report
 
-Delete `.figma-overlay-state.json` last, only after all required source edits and file deletions succeed. Then verify:
+Delete `.figma-overlay-state.json` last, only after the required source edit and file deletions succeed. Verify:
 
-- no recorded overlay file remains
-- all recorded integration markers are absent for version 2
-- the overlay is absent from the page when reachable
-- the manifest is absent
+- the marked import is absent
+- the temporary source file and static image are absent
+- all recorded artifacts and the manifest are absent
+- the page has no overlay when reachable
 - UI fidelity fixes remain intact
 
-Report exact files and integration blocks removed. Identify already-absent files as already absent rather than claiming they were deleted.
+Report the exact import block and files removed. Identify already-absent files honestly.
 
 ## Rules
 
 - Require an explicit cleanup instruction.
-- Treat the manifest as the deletion and edit allowlist.
-- Never revert UI fidelity fixes or unrelated source changes.
-- Prefer a partial, clearly reported cleanup over editing an ambiguous block or deleting an unverified path.
+- Treat the manifest as the edit and deletion allowlist.
+- For v3, remove only one marked import, one temporary source file, one image, recorded artifacts, and the manifest.
+- Never revert UI fixes or unrelated source changes.
+- Stop on ambiguity rather than broadening cleanup scope.

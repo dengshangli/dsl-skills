@@ -10,8 +10,8 @@
 
 | Skill | 用途 | 主要依赖 |
 |---|---|---|
-| [`figma-overlay-check`](./figma-overlay-check/README.zh-CN.md) | 在项目代码中加入持续挂载的叠图，并通过尺寸测量、颜色检查和像素差异对比网页与 Figma 设计稿 | Figma MCP、浏览器自动化、Node.js |
-| [`figma-overlay-cleanup`](./figma-overlay-cleanup/README.zh-CN.md) | 安全删除源码叠图或旧版运行时叠图及其记录产物，同时保留 UI 修改 | 有效的叠图状态清单、浏览器自动化 |
+| [`figma-overlay-check`](./figma-overlay-check/README.zh-CN.md) | 将叠图逻辑放入一个临时文件，主页仅引入一次，并由 AI 循环修复与 Figma 的差异后交付确认 | Figma MCP、浏览器自动化、Node.js |
+| [`figma-overlay-cleanup`](./figma-overlay-cleanup/README.zh-CN.md) | 删除主页叠图引用、临时文件、图片及记录产物，同时保留 UI 修改 | 有效的叠图状态清单、浏览器自动化 |
 | [`wukong-email-template-generator`](./wukong-email-template-generator/README.zh-CN.md) | 在固定悟空邮件外壳中生成 HTML 邮件 | Python 3、仓库自带生成器 |
 | [`email-template-compatibility-test`](./email-template-compatibility-test/README.zh-CN.md) | 将本地 HTML 模板批量发送到测试邮箱并记录服务器接受结果 | Codex 应用内置浏览器 |
 | [`jingdouyun-email-template-replacement`](./jingdouyun-email-template-replacement/README.zh-CN.md) | 只替换筋斗云同名邮件模板的内容字段 | 已登录 Chrome、`chrome:control-chrome` |

@@ -4,17 +4,17 @@ English | [中文](./README.zh-CN.md)
 
 ## Overview
 
-An Agent Skill for checking how faithfully a locally running web page reproduces a Figma design. It adds a persistently mounted overlay component to the project code and combines it with DOM-to-Figma coordinate measurement, numeric color checks, and quantified pixel diffing.
+An Agent Skill for checking how faithfully a locally running page reproduces a Figma design. It keeps all overlay logic in one temporary source file and adds only one marked import to the page entry, making later cleanup precise.
 
 ## What it does
 
 1. Exports a page-level Figma Frame as a PNG and accounts for Figma's 4096 px export limit.
 2. Aligns the browser viewport and checks the page's total height.
-3. Adds a refresh-persistent code overlay with hidden, opacity, and difference modes.
-4. Locates mismatches with diff regions, image crops, and DOM measurements.
+3. Creates one refresh-persistent temporary overlay file, imported once by the page, with hidden, opacity, and difference modes.
+4. Locates mismatches with diff regions, image crops, and DOM measurements, then actively fixes the page.
 5. Checks rendered colors against Figma values and supports perceptual ΔE sampling.
 6. Produces a pixel mismatch score and ranked mismatch regions.
-7. Preserves the overlay code and design image for continued manual review until cleanup runs.
+7. Repeats compare–fix–refresh–measure, then hands off for user confirmation and records v3 cleanup state.
 
 ## Use cases
 
@@ -50,18 +50,21 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 ## Important notes
 
 - Compare one page-level Frame at a time, not an entire Figma canvas.
-- The overlay must be implemented as an isolated project module or component and stay mounted on the target route until cleanup.
+- All overlay DOM, styles, controls, and state must stay in one temporary source file.
+- The page entry may contain only one marked side-effect import between `FIGMA_OVERLAY_START/END`, with no inline overlay component or styles.
 - It must provide hidden, opacity, and difference modes plus opacity control, and remain available after refresh.
+- Once the overlay works, the agent must actively fix revealed UI differences and repeat comparison before asking the user to confirm.
+- User confirmation begins only after the pass criteria are met or all remaining differences are quantified and explained.
 - A low pixel mismatch score does not prove that colors are correct; run the numeric color checks too.
 - Dynamic content, animations, web fonts, viewport size, device pixel ratio, and color profiles can create false differences.
-- The target project may be changed only when the user asks for fixes. A review-only request authorizes inspection, not source edits.
-- The completed check intentionally leaves the overlay source mounted with its design image until `$figma-overlay-cleanup` runs.
-- The skill writes `.figma-overlay-state.json` with exact overlay files and marked integration blocks; invoke `$figma-overlay-cleanup` after review to remove them safely.
+- Normal use of this skill includes UI fixes; skip source edits only when the user explicitly requests review-only or report-only output.
+- The check leaves the temporary file, image, and marked page import until `$figma-overlay-cleanup` runs.
+- `.figma-overlay-state.json` records those three items exactly; cleanup removes only them and comparison artifacts.
 - Comparison-only code is not committed by default; commit it only when the user explicitly requests that.
 
 ## Full instructions
 
-See [SKILL.md](./SKILL.md) for the complete seven-step workflow, source-backed overlay requirements, pass criteria, scripts, and troubleshooting guidance.
+See [SKILL.md](./SKILL.md) for the single-temporary-file workflow, pass criteria, scripts, and cleanup contract.
 
 ## License
 

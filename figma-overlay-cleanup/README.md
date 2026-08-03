@@ -4,13 +4,13 @@ English | [中文](./README.zh-CN.md)
 
 ## Overview
 
-An Agent Skill for safely removing a Figma comparison overlay preserved by `figma-overlay-check`. It supports both the new source-backed overlay and the legacy runtime overlay, removing only content explicitly recorded in the state manifest while preserving every UI fidelity fix.
+An Agent Skill for safely removing a Figma comparison overlay preserved by `figma-overlay-check`. The current v3 flow removes only one marked page import, one temporary overlay file, one design image, and recorded artifacts while preserving every UI fidelity fix.
 
 ## What it removes
 
-- Dedicated overlay source files recorded by a v2 manifest.
-- Integration blocks precisely enclosed by `FIGMA_OVERLAY_START` / `FIGMA_OVERLAY_END` in existing application files.
-- The recorded static overlay image, such as `public/__figma_overlay__/design.png`.
+- The single temporary overlay source file recorded by a v3 manifest.
+- The one page import enclosed by `FIGMA_OVERLAY_START` / `FIGMA_OVERLAY_END`.
+- The recorded static overlay image, such as `public/__figma_overlay__.png`.
 - The recorded downloaded design image and pixel-diff artifacts.
 - Runtime overlay elements and styles recorded by a legacy v1 manifest.
 - The temporary `.figma-overlay-state.json` manifest, after all other cleanup succeeds.
@@ -20,9 +20,9 @@ It does **not** revert, reset, or delete UI implementation changes.
 ## How it works with figma-overlay-check
 
 1. `figma-overlay-check` compares and fixes the page, then leaves the overlay visible for manual review.
-2. It writes `<project-root>/.figma-overlay-state.json` with exact dedicated source paths, marked integration blocks, and artifact paths.
+2. It writes `<project-root>/.figma-overlay-state.json` with the exact temporary file, image, page import, and artifacts.
 3. After reviewing the page, the user explicitly asks to remove the overlay.
-4. `figma-overlay-cleanup` validates the manifest, removes marked source integration and dedicated files, and deletes the manifest last.
+4. `figma-overlay-cleanup` removes the page import first, then the temporary file, image, artifacts, and finally the manifest.
 
 The manifest is the deletion allowlist. Do not create or edit it manually unless you fully understand the cleanup contract.
 
@@ -31,7 +31,7 @@ The manifest is the deletion allowlist. Do not create or edit it manually unless
 - An overlay previously preserved by `figma-overlay-check`.
 - A valid `.figma-overlay-state.json` in the target project root.
 - Filesystem access to the recorded artifacts.
-- Browser automation to refresh and verify that the source-backed or legacy runtime overlay is gone; unavailable pages are reported as unverified.
+- Browser automation to refresh and verify that the temporary-file or legacy overlay is gone; unavailable pages are reported as unverified.
 
 ## Install
 
@@ -57,14 +57,14 @@ For a different or newly opened task, include the target project path so the cor
 
 - Cleanup runs only after an explicit user instruction.
 - The canonical project root must match the manifest.
-- Only exact recorded files and marked code blocks are eligible for deletion or editing.
+- Only the exact recorded temporary file, image, artifacts, and page import are eligible for deletion or editing.
 - Directories, wildcards, recursive deletion, guessed paths, and edits outside marked blocks are forbidden.
 - Missing or unsafe state causes cleanup to stop instead of broadening the deletion scope.
 - Already absent files are reported as absent rather than falsely reported as deleted.
 
 ## Full instructions
 
-See [SKILL.md](./SKILL.md) for manifest validation, source integration removal, file deletion, browser verification, and final checks.
+See [SKILL.md](./SKILL.md) for manifest validation, page-import removal, temporary-file deletion, browser verification, and final checks.
 
 ## License
 
