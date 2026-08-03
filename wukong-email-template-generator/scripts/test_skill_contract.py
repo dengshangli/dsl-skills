@@ -43,6 +43,16 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("fixed columns, image placeholders, or email-client compatibility", instructions)
         self.assertIn('`width` attribute and inline `style="width:…"`', instructions)
 
+    def test_new_variables_default_to_velocity_syntax(self):
+        instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+
+        self.assertIn("Velocity Template Language (VTL) syntax by default", instructions)
+        self.assertIn("`$name`", instructions)
+        self.assertIn("`${name}`", instructions)
+        self.assertIn("`#if`, `#foreach`, and `#set`", instructions)
+        self.assertIn("Preserve variables supplied by the user exactly as written", instructions)
+        self.assertIn("the user has not specified a template engine", instructions)
+
 
 if __name__ == "__main__":
     unittest.main()

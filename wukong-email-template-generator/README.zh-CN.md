@@ -12,6 +12,7 @@
 - 运行 `scripts/generate_email.py`，将正文放入固定悟空邮件外壳。
 - 只生成一个新的完整 HTML 邮件作为最终交付物。
 - 保持模板头部、页脚、全局样式、链接、属性和元数据不变。
+- 创建新模板变量时默认使用 Velocity 模板引擎语法。
 
 ## 适用场景
 
@@ -45,6 +46,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill wukong-
 - 每次请求都必须执行仓库自带生成器。
 - 正文片段只是临时文件，不能作为最终交付物。
 - 只允许替换正文标记，禁止修改固定模板。
+- 新建变量默认使用 `$name` 或 `${name}` 等 Velocity 语法，除非用户明确指定其他模板引擎。
 - 生成器必须输出 `GENERATOR_EXECUTED=YES` 和绝对 `OUTPUT` 路径。
 - 最终只能保留一个新 HTML 交付文件。
 

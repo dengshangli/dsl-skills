@@ -19,7 +19,7 @@ The generated file at `OUTPUT` is the only deliverable. Exactly one new `.html` 
 
 ## Required procedure
 
-1. Design only the requested email body as an HTML fragment. Use email-compatible markup, tables where layout requires them, inline CSS, absolute image URLs, and the user's required template variables.
+1. Design only the requested email body as an HTML fragment. Use email-compatible markup, tables where layout requires them, inline CSS, absolute image URLs, and the user's required template variables. When creating new variables, use Velocity template syntax by default as defined below.
 2. Create the intermediate body fragment inside a dedicated system temporary directory, outside the user's open directory, and give it a `.txt` suffix such as `body-fragment.txt`. Never save the body fragment with an `.html` suffix. Do not include `<html>`, `<head>`, or `<body>` wrappers.
 3. Resolve the directory containing this `SKILL.md`, then change to the user's current open directory. Run the bundled generator from that resolved skill directory:
 
@@ -41,6 +41,12 @@ Treat `assets/template.html` as immutable. The generator replaces only its singl
 ## Email body markup
 
 Do not add width to `<td>` elements by default. This applies to both the `width` attribute and inline `style="width:…"`. Allow a `<td>` width only when the layout genuinely requires fixed columns, image placeholders, or email-client compatibility. Prefer natural table sizing when none of those conditions applies.
+
+## Template variables
+
+Use Velocity Template Language (VTL) syntax by default whenever creating new template variables. Write simple references as `$name` and use `${name}` when braces are needed to separate the variable from adjacent text. Use Velocity directives such as `#if`, `#foreach`, and `#set` for conditional, repeated, or derived content.
+
+Do not invent Mustache, Handlebars, Jinja, or other placeholder forms such as `{{name}}` unless the user explicitly requests that syntax. Preserve variables supplied by the user exactly as written; the Velocity default applies only when the Skill creates a new variable or the user has not specified a template engine.
 
 ## Non-negotiable rules
 
