@@ -62,6 +62,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - 正常调用本 Skill 包含 UI 修复；只有用户明确要求“仅检查/仅报告”时才不修改页面。
 - 检查完成后会保留临时文件、图片和主页 import，直到运行 `$figma-overlay-cleanup`。
 - `.figma-overlay-state.json` 会精确记录这三项；清理时只移除它们和比对产物。
+- 不要把叠图相关临时文件或路径添加到 `.gitignore`，也不要为此修改 `.gitignore`；后续统一由 `$figma-overlay-cleanup` 删除。
 - 比对专用代码默认不提交；只有用户明确要求时才提交到版本库。
 
 ## 完整规则

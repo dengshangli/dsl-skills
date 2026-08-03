@@ -62,6 +62,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - Normal use of this skill includes UI fixes; skip source edits only when the user explicitly requests review-only or report-only output.
 - The check leaves the temporary file, image, and marked page import until `$figma-overlay-cleanup` runs.
 - `.figma-overlay-state.json` records those three items exactly; cleanup removes only them and comparison artifacts.
+- Do not add overlay-related temporary files or paths to `.gitignore`, or modify `.gitignore` for this workflow; `$figma-overlay-cleanup` removes them later.
 - Comparison-only code is not committed by default; commit it only when the user explicitly requests that.
 
 ## Full instructions

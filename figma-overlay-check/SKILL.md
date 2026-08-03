@@ -16,6 +16,7 @@ Export one Figma page Frame as PNG. Put the entire comparison overlay implementa
 - Render the overlay image at exactly the Figma Frame's logical width.
 - After the overlay works, inspect the revealed differences and actively fix the application UI before asking the user to confirm.
 - Repeat compare → fix → refresh → measure until the pass criteria are met or remaining differences are explicitly explained.
+- Do not add overlay-related files or paths to `.gitignore`; leave them visible for `$figma-overlay-cleanup` to remove.
 - Keep the overlay active at handoff. Do not commit comparison-only files unless explicitly requested.
 
 ## Workflow
@@ -93,6 +94,8 @@ if (typeof document !== 'undefined' && !document.querySelector('[data-figma-over
 ```
 
 Browser evaluation may measure or operate the page, but must not inject the overlay as a substitute for this temporary file.
+
+Do not create or modify `.gitignore` entries for the temporary source file, static image, manifest, screenshots, diffs, or any other overlay-related artifact. These files are intentionally temporary and must remain discoverable so `$figma-overlay-cleanup` can remove them later.
 
 ### Step 3: Align viewport and geometry
 
@@ -242,6 +245,7 @@ At handoff, summarize the UI fixes and final comparison result, list the tempora
 - Use the Figma Frame logical width as the overlay image's exact CSS width; never substitute viewport, body, parent, PNG, or screenshot width.
 - Verify the rendered width with `getBoundingClientRect()` before visual comparison.
 - Record the temporary file, image, import block, and artifacts in the v3 manifest.
+- Do not add overlay-related files or paths to `.gitignore`, and do not modify `.gitignore` for this workflow; rely on `$figma-overlay-cleanup` to delete them.
 - Complete the AI correction loop before asking the user for final confirmation.
 - Compare one page-level Frame at a time.
 - Do not commit comparison-only files unless explicitly requested.
