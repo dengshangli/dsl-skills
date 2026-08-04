@@ -4,18 +4,18 @@ English | [中文](./README.zh-CN.md)
 
 ## Overview
 
-Overlay a Figma design on a locally running webpage, automatically find layout, sizing, spacing, typography, and color differences, and edit the webpage code until it matches the design as closely as possible. After confirmation, click `Delete Overlay` in the bottom-right panel to remove the overlay files and page-entry import.
+Overlay a Figma design on a locally running webpage, measure visual differences, and perform one automatic correction pass. The AI reports mismatch before and after that pass, then waits for the user to point out any remaining issue. After confirmation, click `Delete Overlay` in the bottom-right panel to remove the overlay files and page-entry import.
 
 ## What it does
 
 1. Exports a page-level Figma Frame as a PNG and accounts for Figma's 4096 px export limit.
 2. Aligns the browser viewport and checks the page's total height.
 3. Creates one temporary overlay file that the page loads on refresh, rendered at the exact Figma Frame logical width and imported once by the page.
-4. Locates mismatches with diff regions, image crops, and DOM measurements, then actively fixes the page.
+4. Locates mismatches with diff regions, image crops, and DOM measurements, then performs one automatic correction pass.
 5. Checks rendered colors against Figma values and supports perceptual ΔE sampling.
 6. Produces a pixel mismatch score and ranked mismatch regions.
 7. Saves every file needed for comparison under `.figma-overlay-check/`; use `Delete Overlay` afterward to delete this directory.
-8. Adds a red `Delete Overlay` button to the panel, backed by a loopback-only helper that removes the marked import and generated directory after second confirmation.
+8. Injects the same bundled control-panel preset every time, including the red `Delete Overlay` button and its confirmed cleanup flow.
 
 ## Delete Overlay workflow
 
@@ -83,6 +83,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - The page entry may contain only one marked side-effect import between `FIGMA_OVERLAY_START/END`, with no inline overlay component or styles.
 - It must provide hidden, opacity, and difference modes plus opacity control, and remain available after refresh.
 - The expanded panel defaults to the bottom-right with a 12 CSS px inset and a width capped at 300 CSS px. It uses compact typography, 32–36 CSS px controls, and internal scrolling when needed.
+- The panel DOM, styling, labels, dragging, collapsed handle, metrics, and deletion UI come from one bundled preset injected into `__figma_overlay__.ts`; the AI must not redesign them for each comparison.
 - `Hide Image` and `Opacity Overlay` share the first two-column row; `Show Image` spans the full second row. The panel remains draggable and viewport-clamped.
 - The expanded panel includes a full-width red `Delete Overlay` button at the bottom. It requires inline second confirmation; the title-bar close button continues to mean collapse only.
 - Browser code never edits the filesystem directly. A bundled short-lived helper listens only on `127.0.0.1`, requires a one-time token, validates the cleanup manifest, removes the marked import, and then deletes the exact `.figma-overlay-check/` directory.
@@ -93,9 +94,9 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - Find the page canvas by traversing visible application elements from top to bottom and choosing the page-level element whose authored fixed width and rendered width exactly equal the Figma Frame width; a coincidental body or viewport match is invalid.
 - The image's rendered left and top edges must exactly match the target page canvas's left and top edges; do not center it or offset it with margin, padding, or transforms.
 - Before comparison, verify the width and both left/top edge deltas with `getBoundingClientRect()`; each error must be within 0.1 CSS px.
-- Once the overlay works, the agent must actively fix revealed UI differences and repeat comparison before asking the user to confirm.
+- Once the overlay works, the AI measures baseline mismatch, performs one automatic correction pass, and measures mismatch again before asking the user to review.
 - The AI must implement UI with real components, HTML, and CSS. It must never reduce mismatch by replacing a page or section with a screenshot, Figma export, background image, canvas, or another flattened image; images are allowed only for genuine image assets in the design.
-- User confirmation begins only after the measured full-page pixel mismatch is strictly below 2%. At 2.00% or higher, the AI must continue comparing and modifying the page instead of stopping.
+- Mismatch is reported after every correction pass but is not a stopping threshold. The AI does not automatically repeat corrections; remaining changes are driven by user feedback.
 - A low pixel mismatch score does not prove that colors are correct; run the numeric color checks too.
 - Dynamic content, animations, web fonts, viewport size, device pixel ratio, and color profiles can create false differences.
 - Normal use of this skill includes UI fixes; skip source edits only when the user explicitly requests review-only or report-only output.

@@ -1,6 +1,6 @@
 ---
 name: figma-overlay-check
-description: Overlay a page-level Figma Frame on a locally running webpage, find layout, sizing, spacing, typography, and color differences, and iteratively edit the web UI until it matches the design as closely as possible. Use for design implementation review, pixel-perfect visual QA, "overlay comparison", "design diff", "还原度", or "叠图比对" requests. Keep generated comparison files isolated under .figma-overlay-check and provide an in-page Delete Overlay action that removes the overlay while preserving completed UI fixes. Requires a locally runnable web project, Figma MCP, and browser automation.
+description: Overlay a page-level Figma Frame on a locally running webpage, measure layout, sizing, spacing, typography, and color differences, perform one automatic correction pass, report mismatch before and after the pass, and then wait for user-directed follow-up corrections. Use for design implementation review, pixel-perfect visual QA, "overlay comparison", "design diff", "还原度", or "叠图比对" requests. Keep generated comparison files isolated under .figma-overlay-check and provide an in-page Delete Overlay action that removes the overlay while preserving completed UI fixes. Requires a locally runnable web project, Figma MCP, and browser automation.
 ---
 
 # Figma Overlay Fidelity Check
@@ -15,14 +15,15 @@ Export one Figma page Frame as PNG. Put **every generated file** under `<project
 - Keep all overlay DOM, styles, controls, state, route checks, and listeners in that file.
 - Change one existing page-entry file only by adding a marked import for the temporary file.
 - Provide English-labeled `hidden`, `opacity`, and `difference` modes plus opacity control in a draggable, collapsible control panel.
+- Use the bundled `assets/overlay-panel.js` preset for the complete control-panel DOM, styles, labels, dragging, collapse handle, metrics, and deletion UI. Inject it with `scripts/inject-overlay-panel.mjs`; do not recreate or restyle the panel per task.
 - Default the compact control panel to the viewport's bottom-right corner with a 12 CSS px inset and a width no greater than 300 CSS px.
 - Provide a bottom-placed `Delete Overlay` danger action that requires explicit second confirmation and uses the bundled loopback cleanup helper to remove the marked import and `.figma-overlay-check/` safely.
 - Render the overlay image at exactly the Figma Frame's logical width.
 - Find the target page canvas by traversing page elements from top to bottom and selecting the page-level element whose authored fixed width and rendered width exactly match the Figma Frame width.
 - Align the overlay image's rendered left and top edges exactly with the target page canvas's left and top edges.
-- After the overlay works, inspect the revealed differences and actively fix the application UI before asking the user to confirm.
+- After the overlay works, measure the baseline mismatch, inspect the revealed differences, and perform one automatic correction pass before asking the user to review.
 - Preserve a real semantic implementation. Never lower mismatch by replacing a page, section, component, text block, navigation area, footer, form, card group, or other UI region with a flattened image, screenshot, Figma Frame export, CSS background image, canvas rendering, or base64/data-URL raster.
-- Repeat compare → fix → refresh → measure until the measured full-page pixel mismatch is strictly below 2%. A result of 2.00% or higher is never a pass.
+- After every correction pass, refresh, capture a clean screenshot, calculate the new full-page mismatch, and report it. Do not require mismatch below 2% and do not automatically start another pass.
 - After completing overlay-guided UI fixes, explicitly prompt the user to click `Delete Overlay` after their final visual confirmation.
 - Keep the overlay active at handoff. Do not commit comparison-only files unless explicitly requested.
 
@@ -33,9 +34,9 @@ Task Progress:
 - [ ] Step 1: Export the page-level Figma Frame
 - [ ] Step 2: Create one temporary overlay file and import it once
 - [ ] Step 3: Align viewport, page height, and overlay geometry
-- [ ] Step 4: Run the AI correction loop on overlay-revealed differences
+- [ ] Step 4: Measure baseline mismatch and run one automatic correction pass
 - [ ] Step 5: Verify colors numerically
-- [ ] Step 6: Quantify with pixel diff and repeat Steps 4–6 until mismatch is below 2%
+- [ ] Step 6: Measure and record mismatch after the correction pass
 - [ ] Step 7: Record v4 cleanup state and leave the overlay active
 ```
 
@@ -63,12 +64,43 @@ Identify the browser-executed entry for the target page. Create exactly one temp
 .figma-overlay-check/__figma_overlay__.ts
 ```
 
+Write only the page-specific overlay image, route guard, canvas discovery, geometry, and cleanup configuration in this file. Then inject the bundled stable control panel:
+
+```bash
+node <path-to-this-skill>/scripts/inject-overlay-panel.mjs \
+  <project-root>/.figma-overlay-check/__figma_overlay__.ts
+```
+
+The injector appends one marked `FIGMA_OVERLAY_PANEL_PRESET` block and replaces that block idempotently on later runs. Never paste a newly invented panel implementation, alter the injected preset in the generated file, or create a second panel. To change panel design or behavior, update the skill's preset itself and rerun the injector.
+
+After the page-specific code creates the overlay image, mount the injected preset exactly once:
+
+```javascript
+mountFigmaOverlayPanel({
+  frameWidth: figmaFrameWidth,
+  frameHeight: figmaFrameHeight,
+  overlayImage,
+  initialMode: 'opacity',
+  initialOpacity: 0.5,
+  cleanupEndpoint,
+  cleanupToken,
+  getGeometry: () => ({
+    canvas: canvasLabel,
+    widthDelta,
+    leftDelta,
+    topDelta,
+  }),
+});
+```
+
+Supply live values from the page-specific geometry code. Do not duplicate any panel DOM, CSS, mode handling, dragging, collapse, metric formatting, confirmation, or cleanup-request logic outside the preset.
+
 Prefer a side-effect module using plain DOM APIs so application code needs only an import. The temporary file must:
 
 1. Guard browser APIs with `typeof document !== 'undefined'` if the framework may evaluate modules during server rendering.
 2. Initialize idempotently after the document body is ready.
 3. Restrict itself to the target route when the project has multiple pages.
-4. Create and own the overlay image, scoped styles, controls, event listeners, local state, and any animation-free comparison state.
+4. Create and own the overlay image, page-specific styles, route/geometry listeners, local state, and any animation-free comparison state; the injected preset owns all control-panel DOM, styles, and interactions.
 5. Wait for `document.fonts.ready` before visual measurement.
 6. Traverse visible application elements in DOM order from top to bottom, excluding `html`, `body`, and overlay-owned nodes. Select the first page-level element that contains the Figma page content, has an authored fixed CSS width exactly equal to the Figma Frame logical width, and renders at that width within 0.1 CSS px. Do not select an element whose matching width is only caused by `auto`, `100%`, `100vw`, flex/grid stretching, or coincidence with the viewport. Append the overlay root directly to `document.body`, and use document-space `position: absolute` coordinates so the design image's rendered left/top edges exactly match the selected element's rendered left/top edges. Use a maximum z-index and `pointer-events: none`; do not center the image or offset it with margin, padding, or transforms.
 7. Set the image width to the exact numeric Figma Frame logical width in CSS pixels, for example `image.style.width = String(figmaFrameWidth) + 'px'`; use `height: auto` and `max-width: none`.
@@ -83,7 +115,7 @@ Use English for every user-visible control-panel label:
 - `Opacity`, `Canvas`, `Width Δ`, `Left Δ`, and `Top Δ` for the slider and geometry readouts
 - `Delete Overlay`, `Cancel`, `Deleting…`, `Overlay deleted. Reloading…`, and concise English cleanup errors for the destructive action
 
-The control panel must behave as follows:
+The injected control-panel preset must behave as follows. Treat these as verification requirements, not an invitation to regenerate its code:
 
 1. Keep it `position: fixed` above the page and overlay image, with `pointer-events: auto` while the overlay image remains non-interactive.
 2. On initial load and every refresh, anchor the expanded panel to the bottom-right viewport corner using `right: 12px` and `bottom: 12px`; account for safe-area insets when they are larger. Do not center it or default it near the top.
@@ -103,7 +135,7 @@ The control panel must behave as follows:
 16. On the first click, show an inline confirmation message: `Delete local overlay files and remove the page import? UI fixes will be kept.` Show `Cancel` and a destructive `Delete Overlay` confirmation button. Do not use a single-click delete.
 17. On confirmation, disable the delete controls, show `Deleting…`, and send one authenticated `POST` request to the configured loopback cleanup endpoint with `{ "confirm": "DELETE_FIGMA_OVERLAY" }`.
 18. On success, show `Overlay deleted. Reloading…` and reload the page. On failure, keep the panel and overlay visible, restore the controls, and show the helper's concise error. Never pretend cleanup succeeded.
-19. If the helper is unavailable, disable destructive confirmation and show `Cleanup unavailable. Ask Codex to restart cleanup.`
+19. If the helper is unavailable, disable destructive confirmation and show `Cleanup unavailable. Ask AI to restart cleanup.`
 
 Add only this block to the page entry, adapted to the real relative path:
 
@@ -228,18 +260,18 @@ node <path-to-this-skill>/scripts/amplify.mjs <project-root>/.figma-overlay-chec
 
 ### Step 4: Locate and fix differences
 
-Once the overlay is working, **do not hand off for user review yet**. Treat the visible differences as the input to an active correction pass. Inspect, edit the application UI, refresh, and compare again before asking the user to confirm.
+Once the overlay is working, **do not hand off before completing one automatic correction pass**. First capture a clean screenshot and calculate the baseline mismatch with the Step 6 pixel-diff command. Then treat the largest visible differences as the input to one grouped correction pass.
 
-Use this loop:
+Use this single automatic pass:
 
-1. Identify the largest structural differences first: page height, section position, width, spacing, and image geometry.
-2. Edit the relevant application source files to correct those differences.
-3. Refresh; use `opacity` and `difference` modes to verify the change.
-4. Measure DOM geometry and run pixel diffing to locate the next highest-impact region.
-5. Fix typography and colors after structural geometry is stable.
-6. Repeat until the pass criteria in Step 6 are met. Quantifying or explaining remaining differences does not permit stopping while mismatch is 2.00% or higher.
+1. Record the baseline mismatch before changing application source.
+2. Identify the highest-impact structural, typography, and color differences visible in that comparison.
+3. Edit the relevant application source files in one grouped correction pass.
+4. Refresh and use `opacity` and `difference` modes to verify the changes.
+5. Capture a new clean screenshot and calculate the post-correction mismatch in Step 6.
+6. Stop automatic correction after reporting the before/after mismatch. Ask the user to identify any remaining issue they want changed.
 
-Do not ask the user to inspect an obviously mismatched page that the agent can still improve. User confirmation comes after this correction loop.
+Do not automatically repeat the pass because mismatch remains high. A numeric threshold is not a completion gate. If the user requests another correction, perform only that requested correction pass, recalculate mismatch afterward, report the new value, and return control to the user again.
 
 Every correction must preserve implementation integrity:
 
@@ -270,9 +302,9 @@ Use browser evaluation for measurements, not overlay injection:
 })
 ```
 
-Compare these values with Figma node coordinates. After each fix, refresh and use the source-backed controls again.
+Compare these values with Figma node coordinates. After each user-requested correction pass, refresh, use the source-backed controls, and recalculate mismatch.
 
-Only skip UI edits when the user explicitly requests a review-only or report-only result. A normal request to use this skill includes the correction loop.
+Only skip UI edits when the user explicitly requests a review-only or report-only result. A normal initial request to use this skill includes one automatic correction pass.
 
 ### Step 5: Verify colors numerically
 
@@ -297,15 +329,15 @@ cd <project-root>/.figma-overlay-check && npm init -y && npm i pixelmatch pngjs
 node <path-to-this-skill>/scripts/pixel-diff.mjs design.png page.png diff.png
 ```
 
-The script resamples differing widths and reports mismatch percentage plus severe regions. A pass requires a measured full-page mismatch strictly below 2%, no unexplained solid mismatch regions, a successful numeric color check, and a successful implementation-integrity check confirming that no UI region was flattened into an image. Treat 2.00% as failing. A mismatch score achieved by screenshot or image replacement is invalid and must not be reported as a pass.
+The script resamples differing widths and reports mismatch percentage plus severe regions. Run it before the initial automatic correction pass to establish a baseline and again after that pass. For every later user-requested correction pass, run it again afterward and record the new mismatch. Mismatch is a progress measurement, not a stopping threshold. A mismatch score achieved by screenshot or image replacement is invalid and must not be reported.
 
-If mismatch is 2.00% or higher, do not stop, hand off, ask for final confirmation, claim completion, or proceed to Step 7. Identify the highest-impact remaining region, return to Step 4, modify the page, refresh, capture a new clean screenshot, and rerun the pixel diff. Repeat Steps 4–6 for as many iterations as needed until mismatch is strictly below 2%. Quantification is a mandatory loop gate, not the end of the task.
+After the initial post-correction mismatch is recorded, proceed to handoff regardless of its percentage. Do not start another automatic correction pass. Report the baseline and current values, summarize the corrected areas, and let the user point out the next issue. Each subsequent correction requested by the user must end with another clean screenshot and updated mismatch value.
 
 Restore `opacity` or `difference` mode after quantification.
 
 ### Step 7: Record cleanup state and hand off
 
-Enter handoff only after completing the AI correction loop, recording a final measured full-page pixel mismatch strictly below 2%, and confirming from the application diff and rendered DOM that no UI region was replaced with a flattened image. If the latest result is 2.00% or higher or implementation integrity fails, Step 7 is forbidden and the agent must continue Steps 4–6. Exercise each control, verify the compact panel initially sits 12 CSS px from the bottom-right viewport edges and is no wider than 300 CSS px, drag it, select `Hide Image` and `Show Image`, and test collapse/restore. Also verify the two-column mode-button layout, internal overflow behavior, all visible panel text is English, the collapsed handle contains no visible text or icon, about 24 CSS px enter the viewport, a right-edge scrollbar still leaves at least 16 CSS px of unobstructed clickable area to its left, it reserves no layout space, it has the required rounded shape, and it restores the panel when clicked. Verify all modes work, the final pixel/color checks are recorded, and remaining differences are explained. Then create `<project-root>/.figma-overlay-check/.figma-overlay-state.json`:
+Enter handoff after completing one automatic correction pass, recording both baseline and post-correction full-page mismatch values, and confirming from the application diff and rendered DOM that no UI region was replaced with a flattened image. The mismatch percentage does not block handoff, but a missing post-correction measurement or failed implementation-integrity check does. Exercise each control, verify the compact panel initially sits 12 CSS px from the bottom-right viewport edges and is no wider than 300 CSS px, drag it, select `Hide Image` and `Show Image`, and test collapse/restore. Also verify the two-column mode-button layout, internal overflow behavior, all visible panel text is English, the collapsed handle contains no visible text or icon, about 24 CSS px enter the viewport, a right-edge scrollbar still leaves at least 16 CSS px of unobstructed clickable area to its left, it reserves no layout space, it has the required rounded shape, and it restores the panel when clicked. Verify all modes work and the pixel/color checks are recorded. Then create `<project-root>/.figma-overlay-check/.figma-overlay-state.json`:
 
 ```json
 {
@@ -334,7 +366,7 @@ Enter handoff only after completing the AI correction loop, recording a final me
 
 Require `overlayDirectory` to equal the canonical `<project-root>/.figma-overlay-check/`. Require every generated path in the manifest to resolve inside it. Require `temporarySourcePath` to identify the one newly created overlay source file and the `entryImport` marker block to contain only the import matching `importedPath`. Set `panelCleanupEnabled` only when the button, confirmation flow, and loopback helper have been exercised successfully. Read an existing manifest before replacement and confirm its canonical `projectRoot` matches.
 
-At handoff, summarize the UI fixes and final comparison result, list `.figma-overlay-check/` and the page-entry import, then ask the user to perform the final visual confirmation. Leave the overlay and cleanup helper active. Explain that clicking `Delete Overlay` and confirming removes the marked page-entry import and the complete `.figma-overlay-check/` directory while preserving UI fixes.
+At handoff, report baseline mismatch → current mismatch, summarize the UI fixes, list `.figma-overlay-check/` and the page-entry import, and ask the user to point out any remaining issue. Leave the overlay and cleanup helper active. If the user is satisfied, ask them to perform final visual confirmation and click `Delete Overlay`; explain that confirming removes the marked page-entry import and the complete `.figma-overlay-check/` directory while preserving UI fixes.
 
 ## Frequent diff causes
 
@@ -352,6 +384,7 @@ At handoff, summarize the UI fixes and final comparison result, list `.figma-ove
 - Create exactly one temporary overlay source file and one static design image.
 - Modify an existing page-entry file only with one marked side-effect import.
 - Keep all comparison-only implementation details inside the temporary file.
+- Inject the bundled control-panel preset into `__figma_overlay__.ts` with `scripts/inject-overlay-panel.mjs`; never handcraft, restyle, or duplicate the panel during a comparison task.
 - Use the Figma Frame logical width as the overlay image's exact CSS width; never substitute viewport, body, parent, PNG, or screenshot width.
 - Traverse application elements from top to bottom and select only a page-level element whose authored fixed width and rendered width equal the Figma Frame logical width; never infer the canvas from a coincidental `body` or viewport match.
 - Align the overlay image's left/top edges exactly with the target page canvas's left/top edges; never center it or introduce margin, padding, or transform offsets.
@@ -364,10 +397,10 @@ At handoff, summarize the UI fixes and final comparison result, list `.figma-ove
 - Generate every overlay-related file under `.figma-overlay-check/`; do not generate files under `src/`, `public/`, `/tmp`, or other project paths.
 - Add `.figma-overlay-check/` to the project-root `.gitignore` by default without duplicating an existing equivalent rule or disturbing unrelated entries.
 - Cleanup removes the page-entry import and the exact `.figma-overlay-check/` directory but preserves the `.gitignore` rule.
-- Complete the AI correction loop before asking the user for final confirmation.
+- Complete one automatic correction pass before the first user review, with mismatch measured both before and after the pass.
 - Never replace a page or UI region with a flattened image, screenshot, Figma export, background image, SVG screenshot, canvas, video, or data URL to reduce mismatch. Build ordinary UI with real components, semantic HTML, and CSS; use images only for genuine image assets from the design.
 - Never reference or copy `.figma-overlay-check/` artifacts into application code or assets. A pixel-diff result produced by rasterizing UI is invalid, regardless of its mismatch percentage.
-- Never stop or hand off while the latest measured full-page pixel mismatch is 2.00% or higher. Continue the compare → fix → refresh → screenshot → pixel-diff loop until it is strictly below 2%; explaining residual differences is not an exception.
+- Do not use mismatch as a stopping threshold and do not automatically repeat corrections. After each automatic or user-requested correction pass, capture a clean screenshot, report the updated mismatch, and return control to the user.
 - After overlay-guided UI fixes are complete, explicitly prompt the user to click `Delete Overlay` after final visual confirmation; mentioning deletion without a direct instruction is insufficient.
 - Compare one page-level Frame at a time.
 - Do not commit comparison-only files unless explicitly requested.
