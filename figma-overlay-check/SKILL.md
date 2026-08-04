@@ -137,7 +137,16 @@ The injected control-panel preset must behave as follows. Treat these as verific
 18. On success, show `Overlay deleted. Reloading…` and reload the page. On failure, keep the panel and overlay visible, restore the controls, and show the helper's concise error. Never pretend cleanup succeeded.
 19. If the helper is unavailable, disable destructive confirmation and show `Cleanup unavailable. Ask AI to restart cleanup.`
 
-Add only this block to the page entry, adapted to the real relative path:
+Use the bundled entry injector instead of editing the page entry by hand:
+
+```bash
+node <path-to-this-skill>/scripts/inject-page-entry.mjs \
+  --project-root=<absolute-project-root> \
+  --entry=<absolute-browser-entry> \
+  --imported-path=<relative-overlay-module-path>
+```
+
+Capture its JSON output for the manifest. It always adds this marked import block, adapted to the real relative path:
 
 ```javascript
 // FIGMA_OVERLAY_START
@@ -145,9 +154,19 @@ import '../.figma-overlay-check/__figma_overlay__';
 // FIGMA_OVERLAY_END
 ```
 
-The marker block must contain only that import and comments. Do not put overlay JSX, components, styles, configuration, route logic, mount calls, or listeners in the page entry. Do not create additional overlay source files.
+Run the use-client logic only when both checks pass: the project-root `package.json` declares `next`, and the entry is under that project's `app/` or `src/app/` directory. If either check fails—including a non-Next project or a Next.js Pages Router entry—never add or mark `"use client"`. For a confirmed Next.js App Router entry, the injector checks the directive prologue. If the file does not already contain a valid `"use client"` directive, it adds exactly this separately marked block before imports:
 
-If imports must appear before other statements, put the marked block in the import section. If the named main page is server-only, use its nearest browser-executed client entry; still make the import block the only change required to host the overlay.
+```javascript
+// FIGMA_OVERLAY_USE_CLIENT_START
+"use client";
+// FIGMA_OVERLAY_USE_CLIENT_END
+```
+
+If the file already has `"use client"` or `'use client'`, do not add another directive and set `useClientDirective` to `null` in the manifest. Never mark an existing user directive. Cleanup removes the use-client block only when the injector created that marked block; it never removes an unmarked pre-existing directive.
+
+The import marker block must contain only that import and comments. The optional use-client marker block must contain only the directive. Do not put overlay JSX, components, styles, configuration, route logic, mount calls, or listeners in the page entry. Do not create additional overlay source files.
+
+The injector preserves the directive prologue and places the import after it. If the named main page is server-only, use its nearest browser-executed entry. In a Next.js App Router entry, adding the marked directive intentionally turns that entry into a Client Component for the comparison and cleanup restores its original server/client status.
 
 The temporary file should behave like this:
 
@@ -183,6 +202,7 @@ The helper must:
 - Require a one-time bearer token and the exact confirmation payload.
 - Revalidate the v4 manifest, canonical project root, real non-symlink overlay directory, marked import block, and every generated path.
 - Atomically remove only the marked import before deleting the exact `.figma-overlay-check/` directory.
+- In the same atomic entry-file rewrite, remove the marked `"use client"` block only when `useClientDirective` is present in the manifest; never remove a pre-existing unmarked directive.
 - If directory deletion fails after the import edit, retain the validated manifest digest in memory and allow the same helper process to retry only that exact directory deletion.
 - Preserve `.gitignore`, UI fixes, and every unrelated file.
 - Stop after one successful cleanup. If validation or deletion fails, return an error and do not broaden the target.
@@ -351,10 +371,15 @@ Enter handoff after completing one automatic correction pass, recording both bas
   "downloadedImagePath": "/absolute/path/to/project/.figma-overlay-check/design.png",
   "temporarySourcePath": "/absolute/path/to/project/.figma-overlay-check/__figma_overlay__.ts",
   "entryImport": {
-    "path": "/absolute/path/to/project/src/main.ts",
-    "importedPath": "../.figma-overlay-check/__figma_overlay__",
+    "path": "/absolute/path/to/project/src/app/page.tsx",
+    "importedPath": "../../.figma-overlay-check/__figma_overlay__",
     "startMarker": "FIGMA_OVERLAY_START",
     "endMarker": "FIGMA_OVERLAY_END"
+  },
+  "useClientDirective": {
+    "path": "/absolute/path/to/project/src/app/page.tsx",
+    "startMarker": "FIGMA_OVERLAY_USE_CLIENT_START",
+    "endMarker": "FIGMA_OVERLAY_USE_CLIENT_END"
   },
   "panelCleanupEnabled": true,
   "artifactPaths": [
@@ -364,7 +389,7 @@ Enter handoff after completing one automatic correction pass, recording both bas
 }
 ```
 
-Require `overlayDirectory` to equal the canonical `<project-root>/.figma-overlay-check/`. Require every generated path in the manifest to resolve inside it. Require `temporarySourcePath` to identify the one newly created overlay source file and the `entryImport` marker block to contain only the import matching `importedPath`. Set `panelCleanupEnabled` only when the button, confirmation flow, and loopback helper have been exercised successfully. Read an existing manifest before replacement and confirm its canonical `projectRoot` matches.
+Require `overlayDirectory` to equal the canonical `<project-root>/.figma-overlay-check/`. Require every generated path in the manifest to resolve inside it. Require `temporarySourcePath` to identify the one newly created overlay source file and the `entryImport` marker block to contain only the import matching `importedPath`. Copy `useClientDirective` exactly from `inject-page-entry.mjs`: use its marked-block object only when the injector added the directive, otherwise use `null`. Set `panelCleanupEnabled` only when the button, confirmation flow, and loopback helper have been exercised successfully. Read an existing manifest before replacement and confirm its canonical `projectRoot` matches.
 
 At handoff, report baseline mismatch → current mismatch, summarize the UI fixes, list `.figma-overlay-check/` and the page-entry import, and ask the user to point out any remaining issue. Leave the overlay and cleanup helper active. If the user is satisfied, ask them to perform final visual confirmation and click `Delete Overlay`; explain that confirming removes the marked page-entry import and the complete `.figma-overlay-check/` directory while preserving UI fixes.
 
@@ -383,6 +408,7 @@ At handoff, report baseline mismatch → current mismatch, summarize the UI fixe
 
 - Create exactly one temporary overlay source file and one static design image.
 - Modify an existing page-entry file only with one marked side-effect import.
+- Use `scripts/inject-page-entry.mjs` for the entry edit. Add a marked `"use client"` only when both the Next.js dependency check and the `app/` or `src/app/` entry-path check pass and no directive existed. If either check fails, do not add it. Record and remove only the marked directive, never a pre-existing one.
 - Keep all comparison-only implementation details inside the temporary file.
 - Inject the bundled control-panel preset into `__figma_overlay__.ts` with `scripts/inject-overlay-panel.mjs`; never handcraft, restyle, or duplicate the panel during a comparison task.
 - Use the Figma Frame logical width as the overlay image's exact CSS width; never substitute viewport, body, parent, PNG, or screenshot width.

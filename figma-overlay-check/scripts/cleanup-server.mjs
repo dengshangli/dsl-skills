@@ -92,6 +92,18 @@ function validateManifest() {
   }
   if (!fs.statSync(entryPath).isFile()) throw new Error('entryImport.path is not a file');
 
+  const useClientDirective = manifest.useClientDirective ?? null;
+  if (useClientDirective !== null) {
+    if (!useClientDirective || typeof useClientDirective !== 'object') throw new Error('useClientDirective must be an object or null');
+    if (path.resolve(useClientDirective.path) !== entryPath) throw new Error('useClientDirective.path must match entryImport.path');
+    if (
+      useClientDirective.startMarker !== 'FIGMA_OVERLAY_USE_CLIENT_START' ||
+      useClientDirective.endMarker !== 'FIGMA_OVERLAY_USE_CLIENT_END'
+    ) {
+      throw new Error('invalid use-client markers');
+    }
+  }
+
   const temporarySourcePath = path.resolve(manifest.temporarySourcePath);
   if (!resolveImportedPath(entryPath, entryImport.importedPath, temporarySourcePath)) {
     throw new Error('entry import does not resolve to temporarySourcePath');
@@ -104,22 +116,28 @@ function validateManifest() {
     manifestDigest: crypto.createHash('sha256').update(manifestSource).digest('hex'),
     manifestPath,
     overlayDirectory,
+    useClientDirective,
   };
 }
 
-function removeMarkedImport(entryPath, entryImport) {
+function findMarkedRange(lines, startMarker, endMarker, label) {
+  const startText = `// ${startMarker}`;
+  const endText = `// ${endMarker}`;
+  const starts = lines.flatMap((line, index) => (line.trim() === startText ? [index] : []));
+  const ends = lines.flatMap((line, index) => (line.trim() === endText ? [index] : []));
+  if (starts.length !== 1 || ends.length !== 1 || starts[0] >= ends[0]) {
+    throw new Error(`${label} marker pair is missing or ambiguous`);
+  }
+  return { start: starts[0], end: ends[0], body: lines.slice(starts[0] + 1, ends[0]) };
+}
+
+function removeMarkedEntryChanges(entryPath, entryImport, useClientDirective) {
   const source = fs.readFileSync(entryPath, 'utf8');
   const newline = source.includes('\r\n') ? '\r\n' : '\n';
   const lines = source.split(/\r?\n/);
-  const startText = `// ${entryImport.startMarker}`;
-  const endText = `// ${entryImport.endMarker}`;
-  const starts = lines.flatMap((line, index) => (line.trim() === startText ? [index] : []));
-  const ends = lines.flatMap((line, index) => (line.trim() === endText ? [index] : []));
-  if (starts.length !== 1 || ends.length !== 1 || starts[0] >= ends[0]) throw new Error('import marker pair is missing or ambiguous');
-
-  const block = lines.slice(starts[0] + 1, ends[0]);
-  const imports = block.filter((line) => /^\s*import\s+/.test(line));
-  const allowed = block.every((line) => {
+  const importRange = findMarkedRange(lines, entryImport.startMarker, entryImport.endMarker, 'import');
+  const imports = importRange.body.filter((line) => /^\s*import\s+/.test(line));
+  const allowed = importRange.body.every((line) => {
     const trimmed = line.trim();
     return trimmed === '' || trimmed.startsWith('//') || /^import\s+['"][^'"]+['"]\s*;?$/.test(trimmed);
   });
@@ -128,7 +146,26 @@ function removeMarkedImport(entryPath, entryImport) {
   const importMatch = imports[0].trim().match(/^import\s+(['"])([^'"]+)\1\s*;?$/);
   if (!importMatch || importMatch[2] !== entryImport.importedPath) throw new Error('marked import does not match the manifest');
 
-  lines.splice(starts[0], ends[0] - starts[0] + 1);
+  const ranges = [importRange];
+  if (useClientDirective) {
+    const clientRange = findMarkedRange(
+      lines,
+      useClientDirective.startMarker,
+      useClientDirective.endMarker,
+      'use-client',
+    );
+    const clientBody = clientRange.body.map((line) => line.trim()).filter(Boolean);
+    if (clientBody.length !== 1 || !/^(['"])use client\1\s*;?$/.test(clientBody[0])) {
+      throw new Error('marked use-client block contains unexpected code');
+    }
+    ranges.push(clientRange);
+  }
+
+  ranges.sort((a, b) => b.start - a.start);
+  for (const range of ranges) {
+    const removalEnd = lines[range.end + 1]?.trim() === '' ? range.end + 1 : range.end;
+    lines.splice(range.start, removalEnd - range.start + 1);
+  }
   const nextSource = lines.join(newline);
   const temporaryPath = `${entryPath}.figma-overlay-delete-${process.pid}`;
   fs.writeFileSync(temporaryPath, nextSource, { mode: fs.statSync(entryPath).mode });
@@ -138,7 +175,7 @@ function removeMarkedImport(entryPath, entryImport) {
 function cleanup() {
   const state = pendingDeletionState || validateManifest();
   if (!pendingDeletionState) {
-    removeMarkedImport(state.entryPath, state.entryImport);
+    removeMarkedEntryChanges(state.entryPath, state.entryImport, state.useClientDirective);
     pendingDeletionState = state;
   }
 

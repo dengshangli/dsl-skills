@@ -25,8 +25,9 @@
 2. 确认 `Delete local overlay files and remove the page import? UI fixes will be kept.`。
 3. 仅监听本机回环地址的 helper 校验清理清单和一次性令牌。
 4. helper 只删除 `FIGMA_OVERLAY_START/END` import 标记块。
-5. helper 删除精确的 `.figma-overlay-check/` 目录并自动停止。
-6. 页面自动刷新，叠图不再加载。
+5. 如果技能为 Next.js App Router 入口添加了带标记的 `"use client"`，helper 会同时删除该标记块；原本存在的指令不会被删除。
+6. helper 删除精确的 `.figma-overlay-check/` 目录并自动停止。
+7. 页面自动刷新，叠图不再加载。
 
 项目根目录 `.gitignore` 中的规则会保留，所有 UI 还原修改也会保留。helper 不可用时，让 AI 重启清理通道，再重新点击面板按钮。
 
@@ -81,6 +82,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - 默认在项目根目录 `.gitignore` 中加入精确规则 `.figma-overlay-check/`；已有等效规则时不重复添加。
 - 所有叠图 DOM、样式、控制器和状态必须放在一个临时文件中。
 - 主页只能增加一段带 `FIGMA_OVERLAY_START/END` 标记的副作用 import，不能直接加入叠图组件或样式。
+- 只有项目声明了 `next` 依赖，且入口位于该项目的 `app/` 或 `src/app/` 目录下时，才按 Next.js App Router 处理。此类入口没有 `"use client"` 时才添加单独标记的指令，清理时只删除该标记指令；普通项目和 Next.js Pages Router 都不会添加，原文件已有的指令也不会重复添加或删除。
 - 叠图提供 `Hide Image`、`Opacity Overlay`、`Show Image` 三种英文按钮和 `Opacity` 透明度控制，其中 `Show Image` 内部使用差值模式；刷新后仍可继续比较。
 - 展开面板默认距视口右侧和底部各 12 CSS px，宽度不超过 300 CSS px；使用更紧凑的字号、32–36 CSS px 高控件，内容过高时仅面板内部滚动。
 - 面板 DOM、样式、文字、拖动、收起把手、测量信息和删除界面全部来自注入 `__figma_overlay__.ts` 的同一份内置模板；AI 不得在每次对比时重新设计。

@@ -25,8 +25,9 @@ After the final visual confirmation:
 2. Confirm `Delete local overlay files and remove the page import? UI fixes will be kept.`
 3. The loopback-only helper validates the cleanup manifest and one-time token.
 4. It removes only the `FIGMA_OVERLAY_START/END` import block.
-5. It deletes the exact `.figma-overlay-check/` directory and stops automatically.
-6. The page reloads without the overlay.
+5. If the skill added a marked `"use client"` for a Next.js App Router entry, it removes that block too; an existing directive is never removed.
+6. It deletes the exact `.figma-overlay-check/` directory and stops automatically.
+7. The page reloads without the overlay.
 
 The project-root `.gitignore` rule remains for future comparisons, and all UI fidelity fixes remain untouched. If the helper is unavailable, ask the AI to restart the cleanup channel and try the panel action again.
 
@@ -81,6 +82,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - The exact `.figma-overlay-check/` rule is added to the project-root `.gitignore` by default; existing equivalent rules are not duplicated.
 - All overlay DOM, styles, controls, and state must stay in one temporary source file.
 - The page entry may contain only one marked side-effect import between `FIGMA_OVERLAY_START/END`, with no inline overlay component or styles.
+- Only when the project declares a `next` dependency and the entry is under its `app/` or `src/app/` directory does the skill treat it as Next.js App Router. Such an entry receives a separately marked `"use client"` only when none existed, and cleanup removes only that marked directive. Non-Next projects and Next.js Pages Router entries never receive it; an existing directive is neither duplicated nor removed.
 - It must provide hidden, opacity, and difference modes plus opacity control, and remain available after refresh.
 - The expanded panel defaults to the bottom-right with a 12 CSS px inset and a width capped at 300 CSS px. It uses compact typography, 32–36 CSS px controls, and internal scrolling when needed.
 - The panel DOM, styling, labels, dragging, collapsed handle, metrics, and deletion UI come from one bundled preset injected into `__figma_overlay__.ts`; the AI must not redesign them for each comparison.
