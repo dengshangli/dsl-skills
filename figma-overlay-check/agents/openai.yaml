@@ -1,4 +1,4 @@
 interface:
   display_name: "Figma Overlay Check"
   short_description: "Add a removable single-file Figma overlay"
-  default_prompt: "Use $figma-overlay-check to add the single-file overlay at the exact Figma Frame width and page-canvas origin with a Chinese, draggable, non-persistent panel whose rounded browser-edge tab restores it, actively fix revealed UI differences, verify the result, leave it for my confirmation, and then prompt me to invoke $figma-overlay-cleanup."
+  default_prompt: "Use $figma-overlay-check to add the single-file overlay at the exact Figma Frame width and page-canvas origin with an English, draggable, non-persistent panel whose rounded browser-edge tab restores it, actively fix revealed UI differences, verify the result, leave it for my confirmation, and then prompt me to invoke $figma-overlay-cleanup."
