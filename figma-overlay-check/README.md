@@ -28,7 +28,7 @@ After the final visual confirmation:
 5. It deletes the exact `.figma-overlay-check/` directory and stops automatically.
 6. The page reloads without the overlay.
 
-The project-root `.gitignore` rule remains for future comparisons, and all UI fidelity fixes remain untouched. If the helper is unavailable, ask Codex to restart the cleanup channel and try the panel action again.
+The project-root `.gitignore` rule remains for future comparisons, and all UI fidelity fixes remain untouched. If the helper is unavailable, ask the AI to restart the cleanup channel and try the panel action again.
 
 ## Generated layout
 
@@ -86,7 +86,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - `Hide Image` and `Opacity Overlay` share the first two-column row; `Show Image` spans the full second row. The panel remains draggable and viewport-clamped.
 - The expanded panel includes a full-width red `Delete Overlay` button at the bottom. It requires inline second confirmation; the title-bar close button continues to mean collapse only.
 - Browser code never edits the filesystem directly. A bundled short-lived helper listens only on `127.0.0.1`, requires a one-time token, validates the cleanup manifest, removes the marked import, and then deletes the exact `.figma-overlay-check/` directory.
-- If the helper is unavailable or validation fails, the panel reports an error and preserves the overlay. Ask Codex to restart the cleanup channel before trying again.
+- If the helper is unavailable or validation fails, the panel reports an error and preserves the overlay. Ask the AI to restart the cleanup channel before trying again.
 - All visible panel text must be English. The title bar must support dragging, and the close button must collapse the panel to a tiny textless browser-edge handle that restores it when clicked without hiding the overlay image.
 - Use `Hide Image`, `Opacity Overlay`, and `Show Image` for the three mode buttons. Keep about 24 CSS px of the fixed collapsed handle visible, with rounded exposed corners and an English accessible label but no visible text or icon. On the right edge, account for the vertical scrollbar and keep at least 16 CSS px unobstructed and clickable to its left.
 - The image width must exactly equal the Figma Frame logical width; body, viewport, parent, exported PNG, `100%`, and `100vw` widths are not substitutes.
