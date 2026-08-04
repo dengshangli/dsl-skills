@@ -66,26 +66,28 @@ Prefer a side-effect module using plain DOM APIs so application code needs only 
 5. Wait for `document.fonts.ready` before visual measurement.
 6. Traverse visible application elements in DOM order from top to bottom, excluding `html`, `body`, and overlay-owned nodes. Select the first page-level element that contains the Figma page content, has an authored fixed CSS width exactly equal to the Figma Frame logical width, and renders at that width within 0.1 CSS px. Do not select an element whose matching width is only caused by `auto`, `100%`, `100vw`, flex/grid stretching, or coincidence with the viewport. Append the overlay root directly to `document.body`, and use document-space `position: absolute` coordinates so the design image's rendered left/top edges exactly match the selected element's rendered left/top edges. Use a maximum z-index and `pointer-events: none`; do not center the image or offset it with margin, padding, or transforms.
 7. Set the image width to the exact numeric Figma Frame logical width in CSS pixels, for example `image.style.width = String(figmaFrameWidth) + 'px'`; use `height: auto` and `max-width: none`.
-8. Keep the control panel interactive, make it draggable and collapsible to a small viewport-edge tab, and persist mode, opacity, panel position, edge, and collapsed state in `localStorage` when practical.
+8. Keep the control panel interactive and make it draggable and collapsible to a small viewport-edge tab. Keep all UI state in memory only.
 9. Use stable overlay-specific IDs or data attributes and avoid modifying application components or global styles outside this temporary file.
 
 Use Chinese for every user-visible control-panel label:
 
-- `隐藏`: application only (`hidden` state internally)
+- `隐藏图片`: application only (`hidden` state internally)
 - `透明叠加`: adjustable opacity, default `0.5` (`opacity` state internally)
-- `差值`: opacity `1` with `mix-blend-mode: difference` (`difference` state internally)
+- `展示图片`: opacity `1` with `mix-blend-mode: difference` (`difference` state internally)
 - `透明度`, `画布`, `宽差`, `左差`, and `上差` for the slider and geometry readouts
 
 The control panel must behave as follows:
 
 1. Keep it `position: fixed` above the page and overlay image, with `pointer-events: auto` while the overlay image remains non-interactive.
 2. Use the title bar as the drag handle. Implement dragging with Pointer Events and pointer capture; do not start dragging from buttons, inputs, or the opacity slider.
-3. Clamp the panel inside the viewport after dragging and after viewport resize so it cannot become unreachable. Persist its final viewport-relative `x`/`y` position.
+3. Clamp the panel inside the viewport after dragging and after viewport resize so it cannot become unreachable.
 4. Add a visible close/collapse button in the title bar with Chinese accessible text such as `收起叠图面板`.
 5. Treat that button as collapse, not deletion: keep the overlay image, selected mode, opacity, and comparison state unchanged; hide only the full panel.
-6. When collapsed, show one small fixed tab labeled `叠图` attached to the nearest left or right browser edge at a clamped vertical position. The tab must remain above page content and clickable without covering a large area.
-7. Clicking the edge tab must restore the complete panel at its last valid position. Persist `collapsed` and chosen edge so refresh reproduces the same UI state.
+6. When collapsed, show one small fixed tab labeled `叠图` attached to the nearest left or right browser edge at a clamped vertical position. Give the exposed side rounded corners and keep the browser-edge side flush: use a radius such as `12px 0 0 12px` on the right edge and `0 12px 12px 0` on the left edge. Add a subtle shadow and keep a minimum 44×44 CSS px click target. The tab must remain above page content and clickable without covering a large area.
+7. Clicking the edge tab must restore the complete panel at its last valid in-memory position.
 8. Use Chinese text for the title, for example `Figma 叠图 1400×4283`; do not expose the English labels `hidden`, `opacity`, `difference`, or `canvas` in the visible UI.
+
+Do not persist overlay UI state. Do not write mode, opacity, drag position, collapsed state, or edge to `localStorage`, `sessionStorage`, cookies, IndexedDB, or the URL. On each browser refresh, initialize the panel expanded at its default clamped position in `透明叠加` mode with opacity `0.5`.
 
 Add only this block to the page entry, adapted to the real relative path:
 
@@ -217,7 +219,7 @@ Use browser evaluation for measurements, not overlay injection:
 })
 ```
 
-Compare these values with Figma node coordinates. After each fix, refresh and use the persistent controls again.
+Compare these values with Figma node coordinates. After each fix, refresh and use the source-backed controls again.
 
 Only skip UI edits when the user explicitly requests a review-only or report-only result. A normal request to use this skill includes the correction loop.
 
@@ -252,7 +254,7 @@ Restore `opacity` or `difference` mode after quantification.
 
 ### Step 7: Record cleanup state and hand off
 
-Enter handoff only after completing the AI correction loop. Verify a refresh preserves the overlay and panel state, all modes work, the panel can be dragged, the collapse button leaves a clickable edge tab, the tab restores the panel, the final pixel/color checks are recorded, and remaining differences are explained. Then create `<project-root>/.figma-overlay-state.json`:
+Enter handoff only after completing the AI correction loop. Exercise each control, drag the panel, select `隐藏图片` and `展示图片`, and test collapse/restore. Refresh and verify the panel returns to its documented defaults and no overlay state was written to browser storage. Also verify the edge tab has the required rounded shape, all modes work, the final pixel/color checks are recorded, and remaining differences are explained. Then create `<project-root>/.figma-overlay-state.json`:
 
 ```json
 {
@@ -302,6 +304,7 @@ At handoff, summarize the UI fixes and final comparison result, list the tempora
 - Align the overlay image's left/top edges exactly with the target page canvas's left/top edges; never center it or introduce margin, padding, or transform offsets.
 - Verify the rendered width and left/top deltas with `getBoundingClientRect()` before visual comparison; width error and each edge delta must not exceed 0.1 CSS px.
 - Render all visible panel text in Chinese, support title-bar dragging, and make the close button collapse the panel to a small clickable browser-edge `叠图` tab that restores it without changing overlay state.
+- Label the image-off mode `隐藏图片` and the difference-backed image-on mode `展示图片`, give the edge tab exposed-side rounded corners, and keep all panel state in memory without browser-storage persistence.
 - Record the temporary file, image, import block, and artifacts in the v3 manifest.
 - Do not add overlay-related files or paths to `.gitignore`, and do not modify `.gitignore` for this workflow; rely on `$figma-overlay-cleanup` to delete them.
 - Complete the AI correction loop before asking the user for final confirmation.
