@@ -94,7 +94,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - The image's rendered left and top edges must exactly match the target page canvas's left and top edges; do not center it or offset it with margin, padding, or transforms.
 - Before comparison, verify the width and both left/top edge deltas with `getBoundingClientRect()`; each error must be within 0.1 CSS px.
 - Once the overlay works, the agent must actively fix revealed UI differences and repeat comparison before asking the user to confirm.
-- User confirmation begins only after the pass criteria are met or all remaining differences are quantified and explained.
+- User confirmation begins only after the measured full-page pixel mismatch is strictly below 2%. At 2.00% or higher, the AI must continue comparing and modifying the page instead of stopping.
 - A low pixel mismatch score does not prove that colors are correct; run the numeric color checks too.
 - Dynamic content, animations, web fonts, viewport size, device pixel ratio, and color profiles can create false differences.
 - Normal use of this skill includes UI fixes; skip source edits only when the user explicitly requests review-only or report-only output.
