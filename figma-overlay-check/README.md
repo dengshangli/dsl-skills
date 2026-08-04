@@ -53,8 +53,8 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - All overlay DOM, styles, controls, and state must stay in one temporary source file.
 - The page entry may contain only one marked side-effect import between `FIGMA_OVERLAY_START/END`, with no inline overlay component or styles.
 - It must provide hidden, opacity, and difference modes plus opacity control, and remain available after refresh.
-- All visible panel text must be English. The title bar must support dragging, and the close button must collapse the panel to a small browser-edge `Overlay` tab that restores it when clicked without hiding the overlay image.
-- Use `Hide Image`, `Opacity Overlay`, and `Show Image` for the three mode buttons. Give the edge tab rounded exposed corners. Keep panel state in memory only; do not use browser storage, and reset to expanded `Opacity Overlay` mode at opacity `0.5` after refresh.
+- All visible panel text must be English. The title bar must support dragging, and the close button must collapse the panel to a tiny textless browser-edge handle that restores it when clicked without hiding the overlay image.
+- Use `Hide Image`, `Opacity Overlay`, and `Show Image` for the three mode buttons. Keep only 12–16 CSS px of the fixed collapsed handle visible, with rounded exposed corners and an English accessible label but no visible text or icon. Keep panel state in memory only; do not use browser storage, and reset to expanded `Opacity Overlay` mode at opacity `0.5` after refresh.
 - The image width must exactly equal the Figma Frame logical width; body, viewport, parent, exported PNG, `100%`, and `100vw` widths are not substitutes.
 - Find the page canvas by traversing visible application elements from top to bottom and choosing the page-level element whose authored fixed width and rendered width exactly equal the Figma Frame width; a coincidental body or viewport match is invalid.
 - The image's rendered left and top edges must exactly match the target page canvas's left and top edges; do not center it or offset it with margin, padding, or transforms.

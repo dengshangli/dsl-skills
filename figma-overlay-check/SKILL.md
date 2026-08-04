@@ -66,7 +66,7 @@ Prefer a side-effect module using plain DOM APIs so application code needs only 
 5. Wait for `document.fonts.ready` before visual measurement.
 6. Traverse visible application elements in DOM order from top to bottom, excluding `html`, `body`, and overlay-owned nodes. Select the first page-level element that contains the Figma page content, has an authored fixed CSS width exactly equal to the Figma Frame logical width, and renders at that width within 0.1 CSS px. Do not select an element whose matching width is only caused by `auto`, `100%`, `100vw`, flex/grid stretching, or coincidence with the viewport. Append the overlay root directly to `document.body`, and use document-space `position: absolute` coordinates so the design image's rendered left/top edges exactly match the selected element's rendered left/top edges. Use a maximum z-index and `pointer-events: none`; do not center the image or offset it with margin, padding, or transforms.
 7. Set the image width to the exact numeric Figma Frame logical width in CSS pixels, for example `image.style.width = String(figmaFrameWidth) + 'px'`; use `height: auto` and `max-width: none`.
-8. Keep the control panel interactive and make it draggable and collapsible to a small viewport-edge tab. Keep all UI state in memory only.
+8. Keep the control panel interactive and make it draggable and collapsible to a tiny textless viewport-edge handle. Keep all UI state in memory only.
 9. Use stable overlay-specific IDs or data attributes and avoid modifying application components or global styles outside this temporary file.
 
 Use English for every user-visible control-panel label:
@@ -83,8 +83,8 @@ The control panel must behave as follows:
 3. Clamp the panel inside the viewport after dragging and after viewport resize so it cannot become unreachable.
 4. Add a visible close/collapse button in the title bar with English accessible text such as `Collapse overlay panel`.
 5. Treat that button as collapse, not deletion: keep the overlay image, selected mode, opacity, and comparison state unchanged; hide only the full panel.
-6. When collapsed, show one small fixed tab labeled `Overlay` attached to the nearest left or right browser edge at a clamped vertical position. Give the exposed side rounded corners and keep the browser-edge side flush: use a radius such as `12px 0 0 12px` on the right edge and `0 12px 12px 0` on the left edge. Add a subtle shadow and keep a minimum 44×44 CSS px click target. The tab must remain above page content and clickable without covering a large area.
-7. Clicking the edge tab must restore the complete panel at its last valid in-memory position.
+6. When collapsed, show one tiny textless fixed handle attached to the nearest left or right browser edge at a clamped vertical position. Render no visible text or icon inside it. Keep only about 12–16 CSS px visible inside the viewport and about 40–48 CSS px tall. Give the exposed side rounded corners and keep the browser-edge side flush: use a radius such as `12px 0 0 12px` on the right edge and `0 12px 12px 0` on the left edge. Add a subtle shadow. Because it is `position: fixed`, it must not reserve layout space or change page geometry. Keep it above page content and give it an English accessible name such as `aria-label="Expand overlay panel"` and `title="Expand overlay panel"` without displaying those words.
+7. Clicking the textless edge handle must restore the complete panel at its last valid in-memory position.
 8. Use English text for the title, for example `Figma Overlay 1400×4283`. Keep internal state names such as `hidden`, `opacity`, and `difference` out of the visible UI unless they match the specified product labels above.
 
 Do not persist overlay UI state. Do not write mode, opacity, drag position, collapsed state, or edge to `localStorage`, `sessionStorage`, cookies, IndexedDB, or the URL. On each browser refresh, initialize the panel expanded at its default clamped position in `Opacity Overlay` mode with opacity `0.5`.
@@ -254,7 +254,7 @@ Restore `opacity` or `difference` mode after quantification.
 
 ### Step 7: Record cleanup state and hand off
 
-Enter handoff only after completing the AI correction loop. Exercise each control, drag the panel, select `Hide Image` and `Show Image`, and test collapse/restore. Refresh and verify the panel returns to its documented defaults and no overlay state was written to browser storage. Also verify all visible panel text is English, the edge tab has the required rounded shape, all modes work, the final pixel/color checks are recorded, and remaining differences are explained. Then create `<project-root>/.figma-overlay-state.json`:
+Enter handoff only after completing the AI correction loop. Exercise each control, drag the panel, select `Hide Image` and `Show Image`, and test collapse/restore. Refresh and verify the panel returns to its documented defaults and no overlay state was written to browser storage. Also verify all visible panel text is English, the collapsed handle contains no visible text or icon, only 12–16 CSS px enter the viewport, it reserves no layout space, it has the required rounded shape, and it restores the panel when clicked. Verify all modes work, the final pixel/color checks are recorded, and remaining differences are explained. Then create `<project-root>/.figma-overlay-state.json`:
 
 ```json
 {
@@ -303,8 +303,8 @@ At handoff, summarize the UI fixes and final comparison result, list the tempora
 - Traverse application elements from top to bottom and select only a page-level element whose authored fixed width and rendered width equal the Figma Frame logical width; never infer the canvas from a coincidental `body` or viewport match.
 - Align the overlay image's left/top edges exactly with the target page canvas's left/top edges; never center it or introduce margin, padding, or transform offsets.
 - Verify the rendered width and left/top deltas with `getBoundingClientRect()` before visual comparison; width error and each edge delta must not exceed 0.1 CSS px.
-- Render all visible panel text in English, support title-bar dragging, and make the close button collapse the panel to a small clickable browser-edge `Overlay` tab that restores it without changing overlay state.
-- Label the image-off mode `Hide Image` and the difference-backed image-on mode `Show Image`, give the edge tab exposed-side rounded corners, and keep all panel state in memory without browser-storage persistence.
+- Render all visible panel text in English, support title-bar dragging, and make the close button collapse the panel to a tiny textless browser-edge handle that restores it without changing overlay state.
+- Label the image-off mode `Hide Image` and the difference-backed image-on mode `Show Image`; keep the collapsed handle fixed, rounded on its exposed side, only 12–16 CSS px wide inside the viewport, accessible by an English label, and free of visible text or icons.
 - Record the temporary file, image, import block, and artifacts in the v3 manifest.
 - Do not add overlay-related files or paths to `.gitignore`, and do not modify `.gitignore` for this workflow; rely on `$figma-overlay-cleanup` to delete them.
 - Complete the AI correction loop before asking the user for final confirmation.
