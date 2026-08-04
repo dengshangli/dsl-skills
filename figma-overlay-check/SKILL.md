@@ -12,7 +12,7 @@ Export one Figma page Frame as PNG. Put the entire comparison overlay implementa
 - Create exactly one temporary overlay source file.
 - Keep all overlay DOM, styles, controls, state, route checks, and listeners in that file.
 - Change one existing page-entry file only by adding a marked import for the temporary file.
-- Provide `hidden`, `opacity`, and `difference` modes plus opacity control.
+- Provide Chinese-labeled `hidden`, `opacity`, and `difference` modes plus opacity control in a draggable, collapsible control panel.
 - Render the overlay image at exactly the Figma Frame's logical width.
 - Find the target page canvas by traversing page elements from top to bottom and selecting the page-level element whose authored fixed width and rendered width exactly match the Figma Frame width.
 - Align the overlay image's rendered left and top edges exactly with the target page canvas's left and top edges.
@@ -66,14 +66,26 @@ Prefer a side-effect module using plain DOM APIs so application code needs only 
 5. Wait for `document.fonts.ready` before visual measurement.
 6. Traverse visible application elements in DOM order from top to bottom, excluding `html`, `body`, and overlay-owned nodes. Select the first page-level element that contains the Figma page content, has an authored fixed CSS width exactly equal to the Figma Frame logical width, and renders at that width within 0.1 CSS px. Do not select an element whose matching width is only caused by `auto`, `100%`, `100vw`, flex/grid stretching, or coincidence with the viewport. Append the overlay root directly to `document.body`, and use document-space `position: absolute` coordinates so the design image's rendered left/top edges exactly match the selected element's rendered left/top edges. Use a maximum z-index and `pointer-events: none`; do not center the image or offset it with margin, padding, or transforms.
 7. Set the image width to the exact numeric Figma Frame logical width in CSS pixels, for example `image.style.width = String(figmaFrameWidth) + 'px'`; use `height: auto` and `max-width: none`.
-8. Keep the control panel interactive and persist mode/opacity in `localStorage` when practical.
+8. Keep the control panel interactive, make it draggable and collapsible to a small viewport-edge tab, and persist mode, opacity, panel position, edge, and collapsed state in `localStorage` when practical.
 9. Use stable overlay-specific IDs or data attributes and avoid modifying application components or global styles outside this temporary file.
 
-Support:
+Use Chinese for every user-visible control-panel label:
 
-- `hidden`: application only
-- `opacity`: adjustable opacity, default `0.5`
-- `difference`: opacity `1` with `mix-blend-mode: difference`
+- `隐藏`: application only (`hidden` state internally)
+- `透明叠加`: adjustable opacity, default `0.5` (`opacity` state internally)
+- `差值`: opacity `1` with `mix-blend-mode: difference` (`difference` state internally)
+- `透明度`, `画布`, `宽差`, `左差`, and `上差` for the slider and geometry readouts
+
+The control panel must behave as follows:
+
+1. Keep it `position: fixed` above the page and overlay image, with `pointer-events: auto` while the overlay image remains non-interactive.
+2. Use the title bar as the drag handle. Implement dragging with Pointer Events and pointer capture; do not start dragging from buttons, inputs, or the opacity slider.
+3. Clamp the panel inside the viewport after dragging and after viewport resize so it cannot become unreachable. Persist its final viewport-relative `x`/`y` position.
+4. Add a visible close/collapse button in the title bar with Chinese accessible text such as `收起叠图面板`.
+5. Treat that button as collapse, not deletion: keep the overlay image, selected mode, opacity, and comparison state unchanged; hide only the full panel.
+6. When collapsed, show one small fixed tab labeled `叠图` attached to the nearest left or right browser edge at a clamped vertical position. The tab must remain above page content and clickable without covering a large area.
+7. Clicking the edge tab must restore the complete panel at its last valid position. Persist `collapsed` and chosen edge so refresh reproduces the same UI state.
+8. Use Chinese text for the title, for example `Figma 叠图 1400×4283`; do not expose the English labels `hidden`, `opacity`, `difference`, or `canvas` in the visible UI.
 
 Add only this block to the page entry, adapted to the real relative path:
 
@@ -240,7 +252,7 @@ Restore `opacity` or `difference` mode after quantification.
 
 ### Step 7: Record cleanup state and hand off
 
-Enter handoff only after completing the AI correction loop. Verify a refresh preserves the overlay, all modes work, the final pixel/color checks are recorded, and remaining differences are explained. Then create `<project-root>/.figma-overlay-state.json`:
+Enter handoff only after completing the AI correction loop. Verify a refresh preserves the overlay and panel state, all modes work, the panel can be dragged, the collapse button leaves a clickable edge tab, the tab restores the panel, the final pixel/color checks are recorded, and remaining differences are explained. Then create `<project-root>/.figma-overlay-state.json`:
 
 ```json
 {
@@ -289,6 +301,7 @@ At handoff, summarize the UI fixes and final comparison result, list the tempora
 - Traverse application elements from top to bottom and select only a page-level element whose authored fixed width and rendered width equal the Figma Frame logical width; never infer the canvas from a coincidental `body` or viewport match.
 - Align the overlay image's left/top edges exactly with the target page canvas's left/top edges; never center it or introduce margin, padding, or transform offsets.
 - Verify the rendered width and left/top deltas with `getBoundingClientRect()` before visual comparison; width error and each edge delta must not exceed 0.1 CSS px.
+- Render all visible panel text in Chinese, support title-bar dragging, and make the close button collapse the panel to a small clickable browser-edge `叠图` tab that restores it without changing overlay state.
 - Record the temporary file, image, import block, and artifacts in the v3 manifest.
 - Do not add overlay-related files or paths to `.gitignore`, and do not modify `.gitignore` for this workflow; rely on `$figma-overlay-cleanup` to delete them.
 - Complete the AI correction loop before asking the user for final confirmation.

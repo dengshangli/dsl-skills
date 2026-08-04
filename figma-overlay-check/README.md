@@ -53,6 +53,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - All overlay DOM, styles, controls, and state must stay in one temporary source file.
 - The page entry may contain only one marked side-effect import between `FIGMA_OVERLAY_START/END`, with no inline overlay component or styles.
 - It must provide hidden, opacity, and difference modes plus opacity control, and remain available after refresh.
+- All visible panel text must be Chinese. The title bar must support dragging, and the close button must collapse the panel to a small browser-edge `叠图` tab that restores it when clicked without hiding the overlay image.
 - The image width must exactly equal the Figma Frame logical width; body, viewport, parent, exported PNG, `100%`, and `100vw` widths are not substitutes.
 - Find the page canvas by traversing visible application elements from top to bottom and choosing the page-level element whose authored fixed width and rendered width exactly equal the Figma Frame width; a coincidental body or viewport match is invalid.
 - The image's rendered left and top edges must exactly match the target page canvas's left and top edges; do not center it or offset it with margin, padding, or transforms.
