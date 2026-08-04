@@ -1,4 +1,4 @@
 interface:
   display_name: "Figma Overlay Check"
-  short_description: "Add a removable single-file Figma overlay"
-  default_prompt: "Use $figma-overlay-check to add the single-file overlay at the exact Figma Frame width and page-canvas origin with an English, draggable panel whose tiny textless rounded browser-edge handle restores it, actively fix revealed UI differences, verify the result, leave it for my confirmation, and then prompt me to invoke $figma-overlay-cleanup."
+  short_description: "Add a contained Figma overlay with safe deletion"
+  default_prompt: "Use $figma-overlay-check to put every generated file under .figma-overlay-check, add that directory to the project .gitignore, add one marked page-entry import, provide a compact draggable panel defaulting to the bottom-right with a confirmed Delete Overlay action through the loopback-only cleanup helper, align the overlay to the exact Figma Frame width and page-canvas origin, actively fix revealed UI differences, verify the result, and leave it active for my final confirmation and in-panel deletion."
