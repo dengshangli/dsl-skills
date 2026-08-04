@@ -21,6 +21,7 @@ Export one Figma page Frame as PNG. Put **every generated file** under `<project
 - Find the target page canvas by traversing page elements from top to bottom and selecting the page-level element whose authored fixed width and rendered width exactly match the Figma Frame width.
 - Align the overlay image's rendered left and top edges exactly with the target page canvas's left and top edges.
 - After the overlay works, inspect the revealed differences and actively fix the application UI before asking the user to confirm.
+- Preserve a real semantic implementation. Never lower mismatch by replacing a page, section, component, text block, navigation area, footer, form, card group, or other UI region with a flattened image, screenshot, Figma Frame export, CSS background image, canvas rendering, or base64/data-URL raster.
 - Repeat compare → fix → refresh → measure until the measured full-page pixel mismatch is strictly below 2%. A result of 2.00% or higher is never a pass.
 - After completing overlay-guided UI fixes, explicitly prompt the user to click `Delete Overlay` after their final visual confirmation.
 - Keep the overlay active at handoff. Do not commit comparison-only files unless explicitly requested.
@@ -240,6 +241,14 @@ Use this loop:
 
 Do not ask the user to inspect an obviously mismatched page that the agent can still improve. User confirmation comes after this correction loop.
 
+Every correction must preserve implementation integrity:
+
+- Keep visible text as selectable text and keep buttons, links, inputs, navigation, and other controls as real semantic, interactive elements.
+- Never use `design.png`, screenshots, diff images, crops, or any other file from `.figma-overlay-check/` as an application asset. Never copy those files into the application asset tree.
+- Never replace a multi-element Figma Frame, section, component, or group with one `<img>`, CSS `background-image`, SVG containing flattened UI, canvas, video, or data URL merely to reproduce its pixels.
+- Images are allowed only for content that is genuinely an image asset in the design, such as a photo, illustration, logo, icon, badge, or store/payment mark. Export the exact image/vector node, not its enclosing section or any node that contains ordinary UI text or controls.
+- After each source edit, inspect the changed application files and rendered DOM for newly introduced image references or flattened regions. If a replacement violates these rules, revert it and implement the region with components, HTML, and CSS before running the next pixel diff.
+
 Run pixel diffing early to identify severe `x/y/w/h` regions, then crop them:
 
 ```bash
@@ -288,7 +297,7 @@ cd <project-root>/.figma-overlay-check && npm init -y && npm i pixelmatch pngjs
 node <path-to-this-skill>/scripts/pixel-diff.mjs design.png page.png diff.png
 ```
 
-The script resamples differing widths and reports mismatch percentage plus severe regions. A pass requires a measured full-page mismatch strictly below 2%, no unexplained solid mismatch regions, and a successful numeric color check. Treat 2.00% as failing.
+The script resamples differing widths and reports mismatch percentage plus severe regions. A pass requires a measured full-page mismatch strictly below 2%, no unexplained solid mismatch regions, a successful numeric color check, and a successful implementation-integrity check confirming that no UI region was flattened into an image. Treat 2.00% as failing. A mismatch score achieved by screenshot or image replacement is invalid and must not be reported as a pass.
 
 If mismatch is 2.00% or higher, do not stop, hand off, ask for final confirmation, claim completion, or proceed to Step 7. Identify the highest-impact remaining region, return to Step 4, modify the page, refresh, capture a new clean screenshot, and rerun the pixel diff. Repeat Steps 4–6 for as many iterations as needed until mismatch is strictly below 2%. Quantification is a mandatory loop gate, not the end of the task.
 
@@ -296,7 +305,7 @@ Restore `opacity` or `difference` mode after quantification.
 
 ### Step 7: Record cleanup state and hand off
 
-Enter handoff only after completing the AI correction loop and recording a final measured full-page pixel mismatch strictly below 2%. If the latest result is 2.00% or higher, Step 7 is forbidden and the agent must continue Steps 4–6. Exercise each control, verify the compact panel initially sits 12 CSS px from the bottom-right viewport edges and is no wider than 300 CSS px, drag it, select `Hide Image` and `Show Image`, and test collapse/restore. Also verify the two-column mode-button layout, internal overflow behavior, all visible panel text is English, the collapsed handle contains no visible text or icon, about 24 CSS px enter the viewport, a right-edge scrollbar still leaves at least 16 CSS px of unobstructed clickable area to its left, it reserves no layout space, it has the required rounded shape, and it restores the panel when clicked. Verify all modes work, the final pixel/color checks are recorded, and remaining differences are explained. Then create `<project-root>/.figma-overlay-check/.figma-overlay-state.json`:
+Enter handoff only after completing the AI correction loop, recording a final measured full-page pixel mismatch strictly below 2%, and confirming from the application diff and rendered DOM that no UI region was replaced with a flattened image. If the latest result is 2.00% or higher or implementation integrity fails, Step 7 is forbidden and the agent must continue Steps 4–6. Exercise each control, verify the compact panel initially sits 12 CSS px from the bottom-right viewport edges and is no wider than 300 CSS px, drag it, select `Hide Image` and `Show Image`, and test collapse/restore. Also verify the two-column mode-button layout, internal overflow behavior, all visible panel text is English, the collapsed handle contains no visible text or icon, about 24 CSS px enter the viewport, a right-edge scrollbar still leaves at least 16 CSS px of unobstructed clickable area to its left, it reserves no layout space, it has the required rounded shape, and it restores the panel when clicked. Verify all modes work, the final pixel/color checks are recorded, and remaining differences are explained. Then create `<project-root>/.figma-overlay-check/.figma-overlay-state.json`:
 
 ```json
 {
@@ -356,6 +365,8 @@ At handoff, summarize the UI fixes and final comparison result, list `.figma-ove
 - Add `.figma-overlay-check/` to the project-root `.gitignore` by default without duplicating an existing equivalent rule or disturbing unrelated entries.
 - Cleanup removes the page-entry import and the exact `.figma-overlay-check/` directory but preserves the `.gitignore` rule.
 - Complete the AI correction loop before asking the user for final confirmation.
+- Never replace a page or UI region with a flattened image, screenshot, Figma export, background image, SVG screenshot, canvas, video, or data URL to reduce mismatch. Build ordinary UI with real components, semantic HTML, and CSS; use images only for genuine image assets from the design.
+- Never reference or copy `.figma-overlay-check/` artifacts into application code or assets. A pixel-diff result produced by rasterizing UI is invalid, regardless of its mismatch percentage.
 - Never stop or hand off while the latest measured full-page pixel mismatch is 2.00% or higher. Continue the compare → fix → refresh → screenshot → pixel-diff loop until it is strictly below 2%; explaining residual differences is not an exception.
 - After overlay-guided UI fixes are complete, explicitly prompt the user to click `Delete Overlay` after final visual confirmation; mentioning deletion without a direct instruction is insufficient.
 - Compare one page-level Frame at a time.

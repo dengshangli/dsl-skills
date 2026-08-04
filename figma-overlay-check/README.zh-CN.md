@@ -94,6 +94,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - 叠图图片渲染后的左边和上边必须分别与目标页面画布的左边和上边完全对齐；不能居中，也不能通过 margin、padding 或 transform 产生偏移。
 - 比对前必须用 `getBoundingClientRect()` 验证实际渲染宽度及左边/上边差值，每项误差均不得超过 0.1 CSS px。
 - 叠图可用后，AI 必须先根据差异主动调整页面并循环复查，不能立刻要求用户确认。
+- AI 必须使用真实组件、HTML 和 CSS 实现页面，禁止为了降低 mismatch 而把页面或整块区域替换成截图、Figma 导出图、背景图、canvas 或其他扁平图片；只有设计中本来就是图片的素材才允许使用图片。
 - 只有整页像素 mismatch 严格低于 2% 才能进入用户最终确认；达到或超过 2.00% 时，AI 不允许停止，必须继续对比并修改页面。
 - 较低的像素差异比例不能证明颜色完全正确，还必须执行数值颜色检查。
 - 动态内容、动画、Web 字体、视口尺寸、设备像素比和色彩配置都可能制造假差异。
