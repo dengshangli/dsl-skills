@@ -94,9 +94,9 @@ for (const p of points) {
   }
   const dE = deltaE(a, b);
   worst = Math.max(worst, dE);
-  const verdict = dE < 1 ? 'match' : dE < 2.3 ? 'barely perceptible' : dE < 10 ? 'MISMATCH' : 'MISMATCH (large)';
+  const verdict = dE < 1 ? 'match' : dE < 2.3 ? 'barely perceptible' : dE < 10 ? 'different' : 'very different';
   console.log(`(${x},${y})  design ${hex(a)}  page ${hex(b)}  ΔE=${dE.toFixed(2)}  ${verdict}`);
 }
 
-// exit 2 when any sampled point is a real mismatch
+// Exit 2 when any sampled point has a clearly perceptible color difference.
 process.exit(worst >= 2.3 ? 2 : 0);

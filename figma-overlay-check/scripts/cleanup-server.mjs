@@ -71,8 +71,8 @@ function validateManifest() {
   const manifestSource = fs.readFileSync(manifestPath, 'utf8');
   const manifest = JSON.parse(manifestSource);
   if (manifest.version !== 4) throw new Error('unsupported overlay manifest version');
-  if (fs.realpathSync(manifest.projectRoot) !== canonicalProjectRoot) throw new Error('manifest projectRoot mismatch');
-  if (path.resolve(manifest.overlayDirectory) !== overlayDirectory) throw new Error('manifest overlayDirectory mismatch');
+  if (fs.realpathSync(manifest.projectRoot) !== canonicalProjectRoot) throw new Error('manifest projectRoot does not match');
+  if (path.resolve(manifest.overlayDirectory) !== overlayDirectory) throw new Error('manifest overlayDirectory does not match');
 
   for (const field of ['staticImagePath', 'downloadedImagePath', 'temporarySourcePath']) {
     validateGeneratedPath(manifest[field], overlayDirectory, field);

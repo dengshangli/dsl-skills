@@ -4,18 +4,17 @@ English | [中文](./README.zh-CN.md)
 
 ## Overview
 
-Overlay a Figma design on a locally running webpage, measure visual differences, and perform one automatic correction pass. The AI reports mismatch before and after that pass, then waits for the user to point out any remaining issue. After confirmation, click `Delete Overlay` in the bottom-right panel to remove the overlay files and page-entry import.
+Overlay a Figma design on a locally running webpage, inspect visual differences, and perform one automatic correction pass. The AI then waits for the user to point out any remaining issue. After confirmation, click `Delete Overlay` in the bottom-right panel to remove the overlay files and page-entry import.
 
 ## What it does
 
 1. Exports a page-level Figma Frame as a PNG and accounts for Figma's 4096 px export limit.
 2. Aligns the browser viewport and checks the page's total height.
 3. Creates one temporary overlay file that the page loads on refresh, rendered at the exact Figma Frame logical width and imported once by the page.
-4. Locates mismatches with diff regions, image crops, and DOM measurements, then performs one automatic correction pass.
+4. Locates visual differences with the overlay, image crops, and DOM measurements, then performs one automatic correction pass.
 5. Checks rendered colors against Figma values and supports perceptual ΔE sampling.
-6. Produces a pixel mismatch score and ranked mismatch regions.
-7. Saves every file needed for comparison under `.figma-overlay-check/`; use `Delete Overlay` afterward to delete this directory.
-8. Injects the same bundled control-panel preset every time, including the red `Delete Overlay` button and its confirmed cleanup flow.
+6. Saves every file needed for comparison under `.figma-overlay-check/`; use `Delete Overlay` afterward to delete this directory.
+7. Injects the same bundled control-panel preset every time, including the red `Delete Overlay` button and its confirmed cleanup flow.
 
 ## Delete Overlay workflow
 
@@ -56,7 +55,7 @@ The project-root `.gitignore` rule remains for future comparisons, and all UI fi
 - A web project that runs locally.
 - [Figma MCP](https://developers.figma.com/docs/figma-mcp-server/) for design exports and node geometry.
 - [Playwright MCP](https://github.com/microsoft/playwright-mcp) or equivalent browser automation for page control, screenshots, and DOM measurement.
-- Node.js. The included image scripts use `pixelmatch` and `pngjs`, installed when needed.
+- Node.js. The included crop and color-sampling scripts use `pngjs`, installed when needed.
 - Design and page screenshots captured under equivalent viewport conditions.
 
 ## Install
@@ -96,10 +95,10 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - Find the page canvas by traversing visible application elements from top to bottom and choosing the page-level element whose authored fixed width and rendered width exactly equal the Figma Frame width; a coincidental body or viewport match is invalid.
 - The image's rendered left and top edges must exactly match the target page canvas's left and top edges; do not center it or offset it with margin, padding, or transforms.
 - Before comparison, verify the width and both left/top edge deltas with `getBoundingClientRect()`; each error must be within 0.1 CSS px.
-- Once the overlay works, the AI measures baseline mismatch, performs one automatic correction pass, and measures mismatch again before asking the user to review.
-- The AI must implement UI with real components, HTML, and CSS. It must never reduce mismatch by replacing a page or section with a screenshot, Figma export, background image, canvas, or another flattened image; images are allowed only for genuine image assets in the design.
-- Mismatch is reported after every correction pass but is not a stopping threshold. The AI does not automatically repeat corrections; remaining changes are driven by user feedback.
-- A low pixel mismatch score does not prove that colors are correct; run the numeric color checks too.
+- Once the overlay works, the AI performs one automatic correction pass before asking the user to review.
+- The AI must implement UI with real components, HTML, and CSS. It must never replace a page or section with a screenshot, Figma export, background image, canvas, or another flattened image; images are allowed only for genuine image assets in the design.
+- The skill does not calculate or report a full-page pixel-difference percentage. The AI does not automatically repeat corrections; remaining changes are driven by user feedback.
+- Run numeric color checks when exact color verification is useful.
 - Dynamic content, animations, web fonts, viewport size, device pixel ratio, and color profiles can create false differences.
 - Normal use of this skill includes UI fixes; skip source edits only when the user explicitly requests review-only or report-only output.
 - After the agent finishes overlay-guided UI fixes, it must explicitly prompt the user to click the panel's `Delete Overlay` button after final visual confirmation and confirm the destructive action.

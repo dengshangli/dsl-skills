@@ -1,4 +1,4 @@
 interface:
   display_name: "Figma Overlay Check"
   short_description: "Overlay Figma on a webpage, find differences, and fix them"
-  default_prompt: "Use $figma-overlay-check to overlay my Figma design on the local webpage, measure baseline mismatch, perform one automatic correction pass, report the updated mismatch, and leave the removable overlay active for my feedback."
+  default_prompt: "Use $figma-overlay-check to overlay my Figma design on the local webpage, inspect the visible differences, perform one automatic correction pass, and leave the removable overlay active for my feedback."
