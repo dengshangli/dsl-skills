@@ -10,8 +10,7 @@ Each skill has its own documentation, requirements, examples, and safety notes.
 
 | Skill | Purpose | Main requirements |
 |---|---|---|
-| [`figma-overlay-check`](./figma-overlay-check/README.md) | Put overlay logic in one temporary file, import it once, and iteratively fix Figma differences before user confirmation | Figma MCP, browser automation, Node.js |
-| [`figma-overlay-cleanup`](./figma-overlay-cleanup/README.md) | Remove the page import, temporary overlay file, image, and artifacts while preserving UI fixes | Valid overlay state manifest, browser automation |
+| [`figma-overlay-check`](./figma-overlay-check/README.md) | Compare and iteratively fix Figma differences, then remove the overlay through the confirmed in-panel `Delete Overlay` action | Figma MCP, browser automation, Node.js |
 | [`wukong-email-template-generator`](./wukong-email-template-generator/README.md) | Generate HTML emails inside the fixed WuKong email shell | Python 3, bundled generator |
 | [`email-template-compatibility-test`](./email-template-compatibility-test/README.md) | Batch-send local HTML templates to test inboxes and record accepted sends | Codex in-app browser |
 | [`jingdouyun-email-template-replacement`](./jingdouyun-email-template-replacement/README.md) | Replace only the content field of matching Jingdouyun email templates | Logged-in Chrome, `chrome:control-chrome` |

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Figma Overlay Cleanup"
-  short_description: "Safely remove a preserved Figma comparison overlay"
-  default_prompt: "Use $figma-overlay-cleanup to remove the marked page import, temporary overlay file, image, and recorded artifacts without reverting UI fixes."

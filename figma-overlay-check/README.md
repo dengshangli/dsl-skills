@@ -4,17 +4,47 @@ English | [中文](./README.zh-CN.md)
 
 ## Overview
 
-An Agent Skill for checking how faithfully a locally running page reproduces a Figma design. It keeps all overlay logic in one temporary source file and adds only one marked import to the page entry, making later cleanup precise.
+An Agent Skill for checking how faithfully a locally running page reproduces a Figma design. It keeps every generated file under `.figma-overlay-check/`, adds that directory to the project `.gitignore` by default, and adds only one marked import to the page entry, making later cleanup precise.
 
 ## What it does
 
 1. Exports a page-level Figma Frame as a PNG and accounts for Figma's 4096 px export limit.
 2. Aligns the browser viewport and checks the page's total height.
-3. Creates one refresh-persistent temporary overlay file rendered at the exact Figma Frame logical width and imported once by the page.
+3. Creates one temporary overlay file that the page loads on refresh, rendered at the exact Figma Frame logical width and imported once by the page.
 4. Locates mismatches with diff regions, image crops, and DOM measurements, then actively fixes the page.
 5. Checks rendered colors against Figma values and supports perceptual ΔE sampling.
 6. Produces a pixel mismatch score and ranked mismatch regions.
-7. Repeats compare–fix–refresh–measure, then hands off for user confirmation and records v3 cleanup state.
+7. Repeats compare–fix–refresh–measure, then hands off for user confirmation and records v4 cleanup state inside `.figma-overlay-check/`.
+8. Adds a red `Delete Overlay` button to the panel, backed by a loopback-only helper that removes the marked import and generated directory after second confirmation.
+9. Defaults to a compact panel in the bottom-right corner so the comparison controls cover less page content.
+
+## Delete Overlay workflow
+
+No separate cleanup skill is required. After the final visual confirmation:
+
+1. Click the red `Delete Overlay` button at the bottom of the expanded panel.
+2. Confirm `Delete local overlay files and remove the page import? UI fixes will be kept.`
+3. The loopback-only helper validates the v4 manifest and one-time token.
+4. It removes only the `FIGMA_OVERLAY_START/END` import block.
+5. It deletes the exact `.figma-overlay-check/` directory and stops automatically.
+6. The page reloads without the overlay.
+
+The project-root `.gitignore` rule remains for future comparisons, and all UI fidelity fixes remain untouched. If the helper is unavailable, ask Codex to restart the cleanup channel and try the panel action again.
+
+## Generated layout
+
+```text
+<project-root>/
+├── .gitignore                              # contains .figma-overlay-check/
+├── .figma-overlay-check/
+│   ├── .figma-overlay-state.json           # v4 cleanup manifest
+│   ├── __figma_overlay__.ts                # single overlay source file
+│   ├── design.png                          # exported Figma Frame
+│   └── ...                                 # screenshots, diffs, crops, dependencies
+└── <browser page entry>                    # contains one marked side-effect import
+```
+
+No generated overlay file is placed under `src/`, `public/`, `/tmp`, or another project path. The project-root `.gitignore` receives one idempotent `.figma-overlay-check/` rule.
 
 ## Use cases
 
@@ -50,11 +80,18 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 ## Important notes
 
 - Compare one page-level Frame at a time, not an entire Figma canvas.
+- Every generated file—including source, image, screenshots, diffs, dependencies, and manifest—must stay under `<project-root>/.figma-overlay-check/`.
+- The exact `.figma-overlay-check/` rule is added to the project-root `.gitignore` by default; existing equivalent rules are not duplicated.
 - All overlay DOM, styles, controls, and state must stay in one temporary source file.
 - The page entry may contain only one marked side-effect import between `FIGMA_OVERLAY_START/END`, with no inline overlay component or styles.
 - It must provide hidden, opacity, and difference modes plus opacity control, and remain available after refresh.
+- The expanded panel defaults to the bottom-right with a 12 CSS px inset and a width capped at 300 CSS px. It uses compact typography, 32–36 CSS px controls, and internal scrolling when needed.
+- `Hide Image` and `Opacity Overlay` share the first two-column row; `Show Image` spans the full second row. The panel remains draggable and viewport-clamped.
+- The expanded panel includes a full-width red `Delete Overlay` button at the bottom. It requires inline second confirmation; the title-bar close button continues to mean collapse only.
+- Browser code never edits the filesystem directly. A bundled short-lived helper listens only on `127.0.0.1`, requires a one-time token, validates the v4 manifest, removes the marked import, and then deletes the exact `.figma-overlay-check/` directory.
+- If the helper is unavailable or validation fails, the panel reports an error and preserves the overlay. Ask Codex to restart the cleanup channel before trying again.
 - All visible panel text must be English. The title bar must support dragging, and the close button must collapse the panel to a tiny textless browser-edge handle that restores it when clicked without hiding the overlay image.
-- Use `Hide Image`, `Opacity Overlay`, and `Show Image` for the three mode buttons. Keep only 12–16 CSS px of the fixed collapsed handle visible, with rounded exposed corners and an English accessible label but no visible text or icon. Keep panel state in memory only; do not use browser storage, and reset to expanded `Opacity Overlay` mode at opacity `0.5` after refresh.
+- Use `Hide Image`, `Opacity Overlay`, and `Show Image` for the three mode buttons. Keep only 12–16 CSS px of the fixed collapsed handle visible, with rounded exposed corners and an English accessible label but no visible text or icon.
 - The image width must exactly equal the Figma Frame logical width; body, viewport, parent, exported PNG, `100%`, and `100vw` widths are not substitutes.
 - Find the page canvas by traversing visible application elements from top to bottom and choosing the page-level element whose authored fixed width and rendered width exactly equal the Figma Frame width; a coincidental body or viewport match is invalid.
 - The image's rendered left and top edges must exactly match the target page canvas's left and top edges; do not center it or offset it with margin, padding, or transforms.
@@ -64,15 +101,15 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - A low pixel mismatch score does not prove that colors are correct; run the numeric color checks too.
 - Dynamic content, animations, web fonts, viewport size, device pixel ratio, and color profiles can create false differences.
 - Normal use of this skill includes UI fixes; skip source edits only when the user explicitly requests review-only or report-only output.
-- After the agent finishes overlay-guided UI fixes, it must explicitly prompt the user to invoke `$figma-overlay-cleanup` after final visual confirmation.
-- The check leaves the temporary file, image, and marked page import until `$figma-overlay-cleanup` runs.
-- `.figma-overlay-state.json` records those three items exactly; cleanup removes only them and comparison artifacts.
-- Do not add overlay-related temporary files or paths to `.gitignore`, or modify `.gitignore` for this workflow; `$figma-overlay-cleanup` removes them later.
+- After the agent finishes overlay-guided UI fixes, it must explicitly prompt the user to click the panel's `Delete Overlay` button after final visual confirmation and confirm the destructive action.
+- The panel deletion removes the marked page import and then deletes `.figma-overlay-check/` with every generated file inside it.
+- `.figma-overlay-check/.figma-overlay-state.json` records the import and generated artifacts for safe panel deletion.
+- The panel deletion leaves the `.gitignore` rule in place for future comparisons.
 - Comparison-only code is not committed by default; commit it only when the user explicitly requests that.
 
 ## Full instructions
 
-See [SKILL.md](./SKILL.md) for the single-temporary-file workflow, pass criteria, scripts, and cleanup contract.
+See [SKILL.md](./SKILL.md) for the single-temporary-file workflow, pass criteria, scripts, and in-panel deletion contract.
 
 ## License
 
