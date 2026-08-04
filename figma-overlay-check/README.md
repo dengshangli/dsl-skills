@@ -4,7 +4,7 @@ English | [中文](./README.zh-CN.md)
 
 ## Overview
 
-An Agent Skill for checking how faithfully a locally running page reproduces a Figma design. It keeps every generated file under `.figma-overlay-check/`, adds that directory to the project `.gitignore` by default, and adds only one marked import to the page entry, making later cleanup precise.
+Overlay a Figma design on a locally running webpage, automatically find layout, sizing, spacing, typography, and color differences, and edit the webpage code until it matches the design as closely as possible. After confirmation, click `Delete Overlay` in the bottom-right panel to remove the overlay files and page-entry import.
 
 ## What it does
 
@@ -14,17 +14,16 @@ An Agent Skill for checking how faithfully a locally running page reproduces a F
 4. Locates mismatches with diff regions, image crops, and DOM measurements, then actively fixes the page.
 5. Checks rendered colors against Figma values and supports perceptual ΔE sampling.
 6. Produces a pixel mismatch score and ranked mismatch regions.
-7. Repeats compare–fix–refresh–measure, then hands off for user confirmation and records v4 cleanup state inside `.figma-overlay-check/`.
+7. Saves every file needed for comparison under `.figma-overlay-check/`; use `Delete Overlay` afterward to delete this directory.
 8. Adds a red `Delete Overlay` button to the panel, backed by a loopback-only helper that removes the marked import and generated directory after second confirmation.
-9. Defaults to a compact panel in the bottom-right corner so the comparison controls cover less page content.
 
 ## Delete Overlay workflow
 
-No separate cleanup skill is required. After the final visual confirmation:
+After the final visual confirmation:
 
 1. Click the red `Delete Overlay` button at the bottom of the expanded panel.
 2. Confirm `Delete local overlay files and remove the page import? UI fixes will be kept.`
-3. The loopback-only helper validates the v4 manifest and one-time token.
+3. The loopback-only helper validates the cleanup manifest and one-time token.
 4. It removes only the `FIGMA_OVERLAY_START/END` import block.
 5. It deletes the exact `.figma-overlay-check/` directory and stops automatically.
 6. The page reloads without the overlay.
@@ -37,14 +36,12 @@ The project-root `.gitignore` rule remains for future comparisons, and all UI fi
 <project-root>/
 ├── .gitignore                              # contains .figma-overlay-check/
 ├── .figma-overlay-check/
-│   ├── .figma-overlay-state.json           # v4 cleanup manifest
+│   ├── .figma-overlay-state.json           # cleanup manifest
 │   ├── __figma_overlay__.ts                # single overlay source file
 │   ├── design.png                          # exported Figma Frame
 │   └── ...                                 # screenshots, diffs, crops, dependencies
 └── <browser page entry>                    # contains one marked side-effect import
 ```
-
-No generated overlay file is placed under `src/`, `public/`, `/tmp`, or another project path. The project-root `.gitignore` receives one idempotent `.figma-overlay-check/` rule.
 
 ## Use cases
 
@@ -88,7 +85,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - The expanded panel defaults to the bottom-right with a 12 CSS px inset and a width capped at 300 CSS px. It uses compact typography, 32–36 CSS px controls, and internal scrolling when needed.
 - `Hide Image` and `Opacity Overlay` share the first two-column row; `Show Image` spans the full second row. The panel remains draggable and viewport-clamped.
 - The expanded panel includes a full-width red `Delete Overlay` button at the bottom. It requires inline second confirmation; the title-bar close button continues to mean collapse only.
-- Browser code never edits the filesystem directly. A bundled short-lived helper listens only on `127.0.0.1`, requires a one-time token, validates the v4 manifest, removes the marked import, and then deletes the exact `.figma-overlay-check/` directory.
+- Browser code never edits the filesystem directly. A bundled short-lived helper listens only on `127.0.0.1`, requires a one-time token, validates the cleanup manifest, removes the marked import, and then deletes the exact `.figma-overlay-check/` directory.
 - If the helper is unavailable or validation fails, the panel reports an error and preserves the overlay. Ask Codex to restart the cleanup channel before trying again.
 - All visible panel text must be English. The title bar must support dragging, and the close button must collapse the panel to a tiny textless browser-edge handle that restores it when clicked without hiding the overlay image.
 - Use `Hide Image`, `Opacity Overlay`, and `Show Image` for the three mode buttons. Keep about 24 CSS px of the fixed collapsed handle visible, with rounded exposed corners and an English accessible label but no visible text or icon. On the right edge, account for the vertical scrollbar and keep at least 16 CSS px unobstructed and clickable to its left.

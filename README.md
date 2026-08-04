@@ -10,7 +10,7 @@ Each skill has its own documentation, requirements, examples, and safety notes.
 
 | Skill | Purpose | Main requirements |
 |---|---|---|
-| [`figma-overlay-check`](./figma-overlay-check/README.md) | Compare and iteratively fix Figma differences, then remove the overlay through the confirmed in-panel `Delete Overlay` action | Figma MCP, browser automation, Node.js |
+| [`figma-overlay-check`](./figma-overlay-check/README.md) | Overlay a Figma design on a local webpage, find visual differences, fix the page, and remove the overlay when finished | Figma MCP, browser automation, Node.js |
 | [`wukong-email-template-generator`](./wukong-email-template-generator/README.md) | Generate HTML emails inside the fixed WuKong email shell | Python 3, bundled generator |
 | [`email-template-compatibility-test`](./email-template-compatibility-test/README.md) | Batch-send local HTML templates to test inboxes and record accepted sends | Codex in-app browser |
 | [`jingdouyun-email-template-replacement`](./jingdouyun-email-template-replacement/README.md) | Replace only the content field of matching Jingdouyun email templates | Logged-in Chrome, `chrome:control-chrome` |

@@ -1,6 +1,6 @@
 ---
 name: figma-overlay-check
-description: Verify and improve web UI fidelity against a Figma design by exporting a page-level Frame, placing every generated overlay file under .figma-overlay-check, adding that directory to the project .gitignore by default, importing one temporary source file once from the page entry, providing a confirmed in-panel delete action backed by a loopback-only cleanup helper, actively fixing overlay-revealed UI differences through repeated comparison, and handing off only after the fixes are verified for user confirmation. Use for pixel-perfect walkthroughs or when the user mentions "overlay comparison", "design diff", "visual QA", "还原度", "叠图比对", or asks for a low-intrusion overlay that can be removed cleanly. Requires a locally runnable web project, Figma MCP, and browser automation.
+description: Overlay a page-level Figma Frame on a locally running webpage, find layout, sizing, spacing, typography, and color differences, and iteratively edit the web UI until it matches the design as closely as possible. Use for design implementation review, pixel-perfect visual QA, "overlay comparison", "design diff", "还原度", or "叠图比对" requests. Keep generated comparison files isolated under .figma-overlay-check and provide an in-page Delete Overlay action that removes the overlay while preserving completed UI fixes. Requires a locally runnable web project, Figma MCP, and browser automation.
 ---
 
 # Figma Overlay Fidelity Check
