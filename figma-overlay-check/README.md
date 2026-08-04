@@ -10,7 +10,7 @@ An Agent Skill for checking how faithfully a locally running page reproduces a F
 
 1. Exports a page-level Figma Frame as a PNG and accounts for Figma's 4096 px export limit.
 2. Aligns the browser viewport and checks the page's total height.
-3. Creates one refresh-persistent temporary overlay file rendered at the exact Figma Frame logical width and imported once by the page.
+3. Creates one temporary overlay file that the page loads on refresh, rendered at the exact Figma Frame logical width and imported once by the page.
 4. Locates mismatches with diff regions, image crops, and DOM measurements, then actively fixes the page.
 5. Checks rendered colors against Figma values and supports perceptual ΔE sampling.
 6. Produces a pixel mismatch score and ranked mismatch regions.
@@ -54,7 +54,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill figma-o
 - The page entry may contain only one marked side-effect import between `FIGMA_OVERLAY_START/END`, with no inline overlay component or styles.
 - It must provide hidden, opacity, and difference modes plus opacity control, and remain available after refresh.
 - All visible panel text must be English. The title bar must support dragging, and the close button must collapse the panel to a tiny textless browser-edge handle that restores it when clicked without hiding the overlay image.
-- Use `Hide Image`, `Opacity Overlay`, and `Show Image` for the three mode buttons. Keep only 12–16 CSS px of the fixed collapsed handle visible, with rounded exposed corners and an English accessible label but no visible text or icon. Keep panel state in memory only; do not use browser storage, and reset to expanded `Opacity Overlay` mode at opacity `0.5` after refresh.
+- Use `Hide Image`, `Opacity Overlay`, and `Show Image` for the three mode buttons. Keep only 12–16 CSS px of the fixed collapsed handle visible, with rounded exposed corners and an English accessible label but no visible text or icon.
 - The image width must exactly equal the Figma Frame logical width; body, viewport, parent, exported PNG, `100%`, and `100vw` widths are not substitutes.
 - Find the page canvas by traversing visible application elements from top to bottom and choosing the page-level element whose authored fixed width and rendered width exactly equal the Figma Frame width; a coincidental body or viewport match is invalid.
 - The image's rendered left and top edges must exactly match the target page canvas's left and top edges; do not center it or offset it with margin, padding, or transforms.
