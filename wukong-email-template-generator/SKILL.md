@@ -8,10 +8,11 @@ license: MIT
 
 ## Mandatory execution contract
 
-For every email request, MUST execute `scripts/generate_email.py`. Writing or copying a complete HTML file directly is not a valid use of this Skill. Do not report completion or hand off an HTML file unless the command succeeds and prints both:
+For every email request, MUST execute `scripts/generate_email.py`, which MUST run `html-minifier-terser` before writing the deliverable. Writing or copying a complete HTML file directly is not a valid use of this Skill. Do not report completion or hand off an HTML file unless the command succeeds and prints all three lines:
 
 ```text
 GENERATOR_EXECUTED=YES
+MINIFIER_EXECUTED=YES
 OUTPUT=<absolute-path>
 ```
 
@@ -21,7 +22,7 @@ The generated file at `OUTPUT` is the only deliverable. Exactly one new `.html` 
 
 1. Design only the requested email body as an HTML fragment. Use email-compatible markup, tables where layout requires them, inline CSS, absolute image URLs, and the user's required template variables. When creating new variables, use Velocity template syntax by default as defined below.
 2. Create the intermediate body fragment inside a dedicated system temporary directory, outside the user's open directory, and give it a `.txt` suffix such as `body-fragment.txt`. Never save the body fragment with an `.html` suffix. Do not include `<html>`, `<head>`, or `<body>` wrappers.
-3. Resolve the directory containing this `SKILL.md`, then change to the user's current open directory. Run the bundled generator from that resolved skill directory:
+3. Resolve the directory containing this `SKILL.md`, then change to the user's current open directory. Run the bundled generator from that resolved skill directory. The generator automatically runs `html-minifier-terser` with conservative email-safe whitespace compression before it creates the final file:
 
    ```bash
    python3 <skill-directory>/scripts/generate_email.py \
@@ -31,12 +32,12 @@ The generated file at `OUTPUT` is the only deliverable. Exactly one new `.html` 
    Never assume the author's home directory or a fixed installation path. The resolved generator path must belong to this installed Skill.
 
    This defaults to a new timestamped HTML file in the current directory. If the user explicitly requests a filename or directory, add `--output <new-path.html>`.
-4. Require exit code `0`, `GENERATOR_EXECUTED=YES`, and an `OUTPUT=` path.
+4. Require exit code `0`, `GENERATOR_EXECUTED=YES`, `MINIFIER_EXECUTED=YES`, and an `OUTPUT=` path. If `html-minifier-terser` is unavailable or fails, treat the request as failed and do not deliver an unminified fallback.
 5. Verify that the `OUTPUT` file exists and that it is the only new HTML file created by the task. Remove the dedicated system temporary directory, then return the exact `OUTPUT` path.
 
 ## Template boundary
 
-Treat `assets/template.html` as immutable. The generator replaces only its single `邮件正文` placeholder. Never change the header, footer, shell, global styles, links, attributes, whitespace, or any other template byte.
+Treat `assets/template.html` as immutable. Before minification, the generator replaces only its single `邮件正文` placeholder. The required `html-minifier-terser` pass may collapse whitespace in the assembled deliverable, but it must not alter the fixed header, footer, shell semantics, global styles, links, attributes, or recipient-facing text.
 
 ## Email body markup
 
@@ -55,6 +56,7 @@ Do not invent Mustache, Handlebars, Jinja, or other placeholder forms such as `{
 ## Non-negotiable rules
 
 - Never substitute another script, direct file write, copy command, heredoc, formatter, or DOM serializer for `generate_email.py`.
+- Never substitute another minifier for `html-minifier-terser`, skip its failure, or deliver an unminified fallback.
 - Never return the body fragment as though it were the completed email.
 - Never create a body-fragment `.html` file in the user's directory.
 - Never edit or overwrite `assets/template.html`.
@@ -69,6 +71,7 @@ Stop before delivery if any is true:
 
 - `generate_email.py` was not executed.
 - The command output lacks `GENERATOR_EXECUTED=YES`.
+- The command output lacks `MINIFIER_EXECUTED=YES`.
 - The proposed deliverable is the body fragment.
 - More than one new `.html` file was created.
 - The final HTML lacks the fixed WuKong header or footer.

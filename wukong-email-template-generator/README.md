@@ -9,7 +9,7 @@ An Agent Skill for creating WuKong-branded HTML emails with a fixed, reusable em
 ## What it does
 
 - Creates email-compatible body markup for campaigns, newsletters, notifications, and CRM emails.
-- Runs `scripts/generate_email.py` to place the body inside the fixed WuKong shell.
+- Runs `scripts/generate_email.py` to place the body inside the fixed WuKong shell and compress the final HTML with `html-minifier-terser`.
 - Produces one new, complete HTML email as the only deliverable.
 - Preserves the template header, footer, global styles, links, attributes, and metadata.
 - Uses Velocity Template Language syntax by default when creating new template variables.
@@ -24,6 +24,7 @@ An Agent Skill for creating WuKong-branded HTML emails with a fixed, reusable em
 ## Requirements
 
 - Python 3.
+- Node.js with `npx` access to `html-minifier-terser`.
 - A writable output directory.
 - Email-compatible body markup: conservative HTML, inline styles, absolute image URLs, and no JavaScript.
 
@@ -47,7 +48,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill wukong-
 - The body fragment is temporary and is not a deliverable.
 - Only the body marker may be replaced; the fixed template must not be modified.
 - Newly created variables default to Velocity syntax such as `$name` or `${name}` unless another template engine is explicitly requested.
-- The generator must report `GENERATOR_EXECUTED=YES` and an absolute `OUTPUT` path.
+- The generator must report `GENERATOR_EXECUTED=YES`, `MINIFIER_EXECUTED=YES`, and an absolute `OUTPUT` path.
 - Exactly one new HTML deliverable may remain.
 
 ## Full instructions

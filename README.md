@@ -11,7 +11,7 @@ Each skill has its own documentation, requirements, examples, and safety notes.
 | Skill | Purpose | Main requirements |
 |---|---|---|
 | [`figma-overlay-check`](./figma-overlay-check/README.md) | Overlay a Figma design on a local webpage, find visual differences, fix the page, and remove the overlay when finished | Figma MCP, browser automation, Node.js |
-| [`wukong-email-template-generator`](./wukong-email-template-generator/README.md) | Generate HTML emails inside the fixed WuKong email shell | Python 3, bundled generator |
+| [`wukong-email-template-generator`](./wukong-email-template-generator/README.md) | Generate and minify HTML emails inside the fixed WuKong email shell | Python 3, Node.js, bundled generator |
 | [`email-template-compatibility-test`](./email-template-compatibility-test/README.md) | Batch-send local HTML templates to test inboxes and record accepted sends | Codex in-app browser |
 | [`jingdouyun-email-template-replacement`](./jingdouyun-email-template-replacement/README.md) | Replace only the content field of matching Jingdouyun email templates | Logged-in Chrome, `chrome:control-chrome` |
 | [`crm-email-manual-send`](./crm-email-manual-send/README.md) | Match local filenames to CRM templates, send each once, and verify follow-up records | Logged-in CRM Chrome, `chrome:control-chrome` |

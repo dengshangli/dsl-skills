@@ -9,7 +9,7 @@
 ## 功能
 
 - 为活动、Newsletter、通知和 CRM 邮件创建兼容邮件客户端的正文。
-- 运行 `scripts/generate_email.py`，将正文放入固定悟空邮件外壳。
+- 运行 `scripts/generate_email.py`，将正文放入固定悟空邮件外壳，并使用 `html-minifier-terser` 压缩最终 HTML。
 - 只生成一个新的完整 HTML 邮件作为最终交付物。
 - 保持模板头部、页脚、全局样式、链接、属性和元数据不变。
 - 创建新模板变量时默认使用 Velocity 模板引擎语法。
@@ -24,6 +24,7 @@
 ## 环境要求
 
 - Python 3。
+- Node.js，且 `npx` 可访问 `html-minifier-terser`。
 - 可写的输出目录。
 - 兼容邮件客户端的正文：保守 HTML、内联样式、绝对图片地址且不使用 JavaScript。
 
@@ -47,7 +48,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill wukong-
 - 正文片段只是临时文件，不能作为最终交付物。
 - 只允许替换正文标记，禁止修改固定模板。
 - 新建变量默认使用 `$name` 或 `${name}` 等 Velocity 语法，除非用户明确指定其他模板引擎。
-- 生成器必须输出 `GENERATOR_EXECUTED=YES` 和绝对 `OUTPUT` 路径。
+- 生成器必须输出 `GENERATOR_EXECUTED=YES`、`MINIFIER_EXECUTED=YES` 和绝对 `OUTPUT` 路径。
 - 最终只能保留一个新 HTML 交付文件。
 
 ## 完整规则

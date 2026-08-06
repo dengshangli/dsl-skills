@@ -21,6 +21,14 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("Do not report completion", instructions)
         self.assertIn("GENERATOR_EXECUTED=YES", instructions)
 
+    def test_skill_requires_html_minifier_terser(self):
+        instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+
+        self.assertIn("MUST run `html-minifier-terser`", instructions)
+        self.assertIn("MINIFIER_EXECUTED=YES", instructions)
+        self.assertIn("do not deliver an unminified fallback", instructions)
+        self.assertIn("Never substitute another minifier", instructions)
+
     def test_skill_uses_a_portable_generator_path(self):
         instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
 

@@ -9,10 +9,23 @@ SKILL_DIR = Path(__file__).resolve().parents[1]
 SCRIPT = SKILL_DIR / "scripts" / "generate_email.py"
 TEMPLATE = SKILL_DIR / "assets" / "template.html"
 PLACEHOLDER = "                邮件正文"
+MINIFIER_COMMAND = [
+    "npx",
+    "--yes",
+    "html-minifier-terser@7.2.0",
+    "--collapse-whitespace",
+    "--conservative-collapse",
+]
 
 
 class GenerateEmailTests(unittest.TestCase):
-    def run_generator(self, body: str, output: Path | None, cwd: Path | None = None):
+    def run_generator(
+        self,
+        body: str,
+        output: Path | None,
+        cwd: Path | None = None,
+        env: dict[str, str] | None = None,
+    ):
         base = output.parent if output else cwd
         assert base is not None
         body_file = base / "body.html"
@@ -30,7 +43,18 @@ class GenerateEmailTests(unittest.TestCase):
             capture_output=True,
             text=True,
             cwd=cwd,
+            env=env,
         )
+
+    def minify(self, source: str) -> str:
+        result = subprocess.run(
+            MINIFIER_COMMAND,
+            input=source,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout
 
     def test_creates_a_new_html_file_without_changing_template(self):
         original = TEMPLATE.read_bytes()
@@ -52,7 +76,7 @@ class GenerateEmailTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             generated = output.read_text(encoding="utf-8")
-            self.assertEqual(generated, before + body + after)
+            self.assertEqual(generated, self.minify(before + body + after))
 
     def test_refuses_to_overwrite_template(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -104,7 +128,17 @@ class GenerateEmailTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("GENERATOR_EXECUTED=YES", result.stdout)
+            self.assertIn("MINIFIER_EXECUTED=YES", result.stdout)
             self.assertIn(f"OUTPUT={output.resolve()}", result.stdout)
+
+    def test_does_not_create_output_when_minifier_is_unavailable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "campaign.html"
+            result = self.run_generator("<p>Hello</p>", output, env={"PATH": ""})
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("npx is required to run html-minifier-terser", result.stderr)
+            self.assertFalse(output.exists())
 
 
 if __name__ == "__main__":

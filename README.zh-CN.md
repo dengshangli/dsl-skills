@@ -11,7 +11,7 @@
 | Skill | 用途 | 主要依赖 |
 |---|---|---|
 | [`figma-overlay-check`](./figma-overlay-check/README.zh-CN.md) | 把 Figma 设计稿叠到本地网页上，自动找出视觉差异并修改页面，完成后可一键移除叠图 | Figma MCP、浏览器自动化、Node.js |
-| [`wukong-email-template-generator`](./wukong-email-template-generator/README.zh-CN.md) | 在固定悟空邮件外壳中生成 HTML 邮件 | Python 3、仓库自带生成器 |
+| [`wukong-email-template-generator`](./wukong-email-template-generator/README.zh-CN.md) | 在固定悟空邮件外壳中生成并压缩 HTML 邮件 | Python 3、Node.js、仓库自带生成器 |
 | [`email-template-compatibility-test`](./email-template-compatibility-test/README.zh-CN.md) | 将本地 HTML 模板批量发送到测试邮箱并记录服务器接受结果 | Codex 应用内置浏览器 |
 | [`jingdouyun-email-template-replacement`](./jingdouyun-email-template-replacement/README.zh-CN.md) | 只替换筋斗云同名邮件模板的内容字段 | 已登录 Chrome、`chrome:control-chrome` |
 | [`crm-email-manual-send`](./crm-email-manual-send/README.zh-CN.md) | 将本地文件名映射到 CRM 模板，逐封发送并核验跟进记录 | 已登录 CRM 的 Chrome、`chrome:control-chrome` |
