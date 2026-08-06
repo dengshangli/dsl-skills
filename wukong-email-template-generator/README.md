@@ -47,7 +47,7 @@ npx skills add dengshangli/dsl-skills --global --agent universal --skill wukong-
 - The bundled generator must be executed for every request.
 - The body fragment is temporary and is not a deliverable.
 - Only the body marker may be replaced; the fixed template must not be modified.
-- Newly created variables default to Velocity syntax such as `$name` or `${name}` unless another template engine is explicitly requested.
+- Newly created variables use braced Velocity syntax such as `${name}` or `${enterClassLink}`; bare forms such as `$name` are not generated unless the user supplied them and asked to preserve them.
 - The generator must report `GENERATOR_EXECUTED=YES`, `MINIFIER_EXECUTED=YES`, and an absolute `OUTPUT` path.
 - Exactly one new HTML deliverable may remain.
 

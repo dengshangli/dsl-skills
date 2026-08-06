@@ -49,7 +49,7 @@ Write newly generated recipient-facing email copy in English by default, includi
 
 ## Template variables
 
-Use Velocity Template Language (VTL) syntax by default whenever creating new template variables. Write simple references as `$name` and use `${name}` when braces are needed to separate the variable from adjacent text. Use Velocity directives such as `#if`, `#foreach`, and `#set` for conditional, repeated, or derived content.
+Use Velocity Template Language (VTL) syntax by default whenever creating new template variables. Always wrap every newly generated variable reference in braces, including standalone references: write `${name}` and `${enterClassLink}`, never `$name` or `$enterClassLink`. Use the same braced reference form inside Velocity directives such as `#if`, `#foreach`, and `#set` for conditional, repeated, or derived content.
 
 Do not invent Mustache, Handlebars, Jinja, or other placeholder forms such as `{{name}}` unless the user explicitly requests that syntax. Preserve variables supplied by the user exactly as written; the Velocity default applies only when the Skill creates a new variable or the user has not specified a template engine.
 

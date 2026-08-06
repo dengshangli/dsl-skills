@@ -55,11 +55,14 @@ class SkillContractTests(unittest.TestCase):
         instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
 
         self.assertIn("Velocity Template Language (VTL) syntax by default", instructions)
-        self.assertIn("`$name`", instructions)
         self.assertIn("`${name}`", instructions)
+        self.assertIn("`${enterClassLink}`", instructions)
+        self.assertIn("never `$name` or `$enterClassLink`", instructions)
+        self.assertIn("including standalone references", instructions)
         self.assertIn("`#if`, `#foreach`, and `#set`", instructions)
         self.assertIn("Preserve variables supplied by the user exactly as written", instructions)
         self.assertIn("the user has not specified a template engine", instructions)
+        self.assertNotIn("Write simple references as `$name`", instructions)
 
     def test_new_email_copy_prefers_english_without_overriding_the_user(self):
         instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
