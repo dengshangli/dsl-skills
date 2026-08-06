@@ -42,6 +42,10 @@ Treat `assets/template.html` as immutable. The generator replaces only its singl
 
 Do not add width to `<td>` elements by default. This applies to both the `width` attribute and inline `style="width:…"`. Allow a `<td>` width only when the layout genuinely requires fixed columns, image placeholders, or email-client compatibility. Prefer natural table sizing when none of those conditions applies.
 
+## Content language
+
+Write newly generated recipient-facing email copy in English by default, including headings, paragraphs, labels, and calls to action. Treat English as a preference, not an override: use another language when the user explicitly requests it, and preserve user-supplied copy in its original language unless the user asks for translation or rewriting. Do not translate or otherwise alter fixed text in the WuKong template shell.
+
 ## Template variables
 
 Use Velocity Template Language (VTL) syntax by default whenever creating new template variables. Write simple references as `$name` and use `${name}` when braces are needed to separate the variable from adjacent text. Use Velocity directives such as `#if`, `#foreach`, and `#set` for conditional, repeated, or derived content.

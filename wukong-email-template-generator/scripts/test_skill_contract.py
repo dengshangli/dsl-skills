@@ -53,6 +53,14 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("Preserve variables supplied by the user exactly as written", instructions)
         self.assertIn("the user has not specified a template engine", instructions)
 
+    def test_new_email_copy_prefers_english_without_overriding_the_user(self):
+        instructions = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+
+        self.assertIn("recipient-facing email copy in English by default", instructions)
+        self.assertIn("use another language when the user explicitly requests it", instructions)
+        self.assertIn("preserve user-supplied copy in its original language", instructions)
+        self.assertIn("Do not translate or otherwise alter fixed text", instructions)
+
 
 if __name__ == "__main__":
     unittest.main()
